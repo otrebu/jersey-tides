@@ -35,7 +35,7 @@ export function Calendar({ currentDate, selectedDate, onSelectDate, onNavigateMo
   }, [currentDate])
 
   return (
-    <div className="w-full max-w-[360px] bg-[var(--card-bg)] rounded-[var(--border-radius)] shadow-[var(--shadow)] overflow-hidden border-[var(--card-border)]">
+    <div className="w-full max-w-[360px] md:max-w-[480px] lg:max-w-[540px] bg-[var(--card-bg)] rounded-[var(--border-radius)] shadow-[var(--shadow)] overflow-hidden border-[var(--card-border)]">
       {/* Month navigation header */}
       <div className="flex justify-between items-center px-2.5 py-2 bg-[var(--header-bg)] text-[var(--header-text)] border-b-[var(--card-border)]">
         <button
@@ -44,7 +44,7 @@ export function Calendar({ currentDate, selectedDate, onSelectDate, onNavigateMo
         >
           ◀
         </button>
-        <span className="text-[0.7rem] font-bold tracking-wider">
+        <span className="text-[0.7rem] md:text-sm font-bold tracking-wider">
           {MONTHS[currentDate.getMonth()]} {currentDate.getFullYear()}
         </span>
         <button

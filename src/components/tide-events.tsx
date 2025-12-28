@@ -24,7 +24,7 @@ export function TideEvents({ extremes, sunTimes, moonPhase, selectedDate }: Tide
   }, [extremes, sunTimes])
 
   return (
-    <div className="w-full max-w-[360px] mt-2 bg-[var(--card-bg)] rounded-[var(--border-radius)] shadow-[var(--shadow)] overflow-hidden border-[var(--card-border)]">
+    <div className="w-full max-w-[360px] md:max-w-[480px] lg:max-w-[540px] mt-2 bg-[var(--card-bg)] rounded-[var(--border-radius)] shadow-[var(--shadow)] overflow-hidden border-[var(--card-border)]">
       {/* Header */}
       <div className="px-2.5 py-2 bg-[var(--header-bg)] text-[var(--header-text)] flex justify-between items-center border-b-[var(--card-border)]">
         <div className="text-[0.6rem] font-bold tracking-wide">

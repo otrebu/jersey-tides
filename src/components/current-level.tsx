@@ -12,12 +12,12 @@ interface CurrentLevelProps {
 
 export function CurrentLevel({ currentLevel, isToday, selectedDate, moonPhase, extremes }: CurrentLevelProps) {
   return (
-    <div className="w-full max-w-[360px] mb-2 px-3 py-2.5 bg-[var(--current-bg)] text-[var(--current-text)] rounded-[var(--border-radius)] shadow-[var(--shadow)] border-[var(--card-border)]">
+    <div className="w-full max-w-[360px] md:max-w-[480px] lg:max-w-[540px] mb-2 px-3 py-2.5 md:px-4 md:py-3 bg-[var(--current-bg)] text-[var(--current-text)] rounded-[var(--border-radius)] shadow-[var(--shadow)] border-[var(--card-border)]">
       <div className="flex items-baseline gap-2.5">
         <span className="text-[0.55rem] font-bold tracking-wider">
           {isToday ? 'NOW' : 'VIEWING'}
         </span>
-        <span className="text-2xl font-black">
+        <span className="text-2xl md:text-3xl font-black">
           {isToday && currentLevel
             ? `${currentLevel.height.toFixed(1)}m`
             : selectedDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}

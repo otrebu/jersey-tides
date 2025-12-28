@@ -34,10 +34,10 @@ export default function App() {
     <div className="min-h-screen bg-[var(--bg)] p-4 text-[var(--text)]">
       <div className="flex flex-col items-center">
         <header className="text-center mb-2">
-          <h1 className="text-2xl font-black tracking-widest m-0 pb-1 border-b-[3px] border-[#111] text-[var(--text)]">
+          <h1 className="text-2xl md:text-3xl font-black tracking-widest m-0 pb-1 border-b-[3px] border-[#111] text-[var(--text)]">
             JERSEY TIDES
           </h1>
-          <div className="text-[0.55rem] text-[var(--text-muted)] tracking-wider mt-1">
+          <div className="text-[0.55rem] md:text-xs text-[var(--text-muted)] tracking-wider mt-1">
             ST. HELIER · TIDES · SUN · MOON
           </div>
         </header>
@@ -57,7 +57,7 @@ export default function App() {
           onNavigateMonth={navigateMonth}
         />
 
-        <div className="w-full max-w-[360px] mt-2 p-2 bg-[var(--card-bg)] rounded-[var(--border-radius)] shadow-[var(--shadow)] border-[var(--card-border)]">
+        <div className="w-full max-w-[360px] md:max-w-[480px] lg:max-w-[540px] mt-2 p-2 bg-[var(--card-bg)] rounded-[var(--border-radius)] shadow-[var(--shadow)] border-[var(--card-border)]">
           <TideCurve
             extremes={extremes}
             currentTime={currentTime}
@@ -73,7 +73,7 @@ export default function App() {
           selectedDate={selectedDate}
         />
 
-        <footer className="mt-2 text-[0.5rem] text-[var(--text-muted)] text-center">
+        <footer className="mt-2 text-[0.5rem] md:text-xs text-[var(--text-muted)] text-center">
           49.21°N · 2.14°W · DATUM: LAT
         </footer>
       </div>
