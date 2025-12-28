@@ -7,7 +7,7 @@ import { Calendar } from '@/components/calendar'
 import { TideCurve } from '@/components/tide-curve'
 import { TideEvents } from '@/components/tide-events'
 
-export default function App() {
+export function TidesPage() {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState(new Date())
   const [currentTime, setCurrentTime] = useState(new Date())

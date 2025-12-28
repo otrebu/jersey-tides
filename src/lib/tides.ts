@@ -39,7 +39,7 @@ export function getDayExtremes(date: Date): TideExtreme[] {
   const prediction: Array<{ time: Date; level: number; high: boolean }> = predictor.getExtremesPrediction({
     start,
     end,
-    timeFidelity: 10 * 60 // 10 minute resolution in seconds
+    timeFidelity: 60 // 1 minute resolution in seconds
   })
 
   return prediction.map((e): TideExtreme => ({
