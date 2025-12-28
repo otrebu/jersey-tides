@@ -14,6 +14,7 @@ export function TideCurve({ extremes, currentTime, isToday, sunTimes }: TideCurv
 
   const width = 340
   const height = 80
+  const viewBox = `0 0 ${width} ${height}`
   const pad = { top: 16, bottom: 18, left: 30, right: 8 }
   const cw = width - pad.left - pad.right
   const ch = height - pad.top - pad.bottom
@@ -69,7 +70,7 @@ export function TideCurve({ extremes, currentTime, isToday, sunTimes }: TideCurv
     : null
 
   return (
-    <svg width={width} height={height} className="block mx-auto">
+    <svg viewBox={viewBox} className="block w-full h-auto">
       {/* Night shading */}
       {srX && (
         <rect x={pad.left} y={pad.top} width={srX - pad.left} height={ch} className="fill-[var(--text)] opacity-[0.06]" />
