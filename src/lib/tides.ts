@@ -1,10 +1,8 @@
-import TidePredictor from '@neaps/tide-predictor'
+import { createPredictor } from './engine'
 import { ST_HELIER_CONSTITUENTS, DATUM } from './constants'
 
 // Initialize the tide predictor with St. Helier constituents
-const predictor = TidePredictor(ST_HELIER_CONSTITUENTS, {
-  phaseKey: 'phase_GMT'
-})
+const predictor = createPredictor(ST_HELIER_CONSTITUENTS)
 
 export interface TideExtreme {
   time: Date
@@ -22,8 +20,7 @@ export interface CurrentTide {
  * Get the tide level at a specific time
  */
 export function getTideLevel(time: Date): number {
-  const prediction: { level: number } = predictor.getWaterLevelAtTime({ time })
-  return DATUM + prediction.level
+  return DATUM + predictor.levelAt(time)
 }
 
 /**
@@ -36,16 +33,11 @@ export function getDayExtremes(date: Date): TideExtreme[] {
   const end = new Date(start)
   end.setDate(end.getDate() + 1)
 
-  // Pad the search window: the engine cannot detect an extreme lying exactly on
-  // a window edge, so a high/low falling at midnight would otherwise be dropped.
+  // Pad the search window so an extreme falling exactly at midnight is still
+  // bracketed by the slope-sign scan, then filter back to the day.
   const padMs = 60 * 60 * 1000
-  const prediction: Array<{ time: Date; level: number; high: boolean }> = predictor.getExtremesPrediction({
-    start: new Date(start.getTime() - padMs),
-    end: new Date(end.getTime() + padMs),
-    timeFidelity: 60 // 1 minute resolution in seconds
-  })
-
-  return prediction
+  return predictor
+    .extremes(new Date(start.getTime() - padMs), new Date(end.getTime() + padMs))
     .filter(e => e.time >= start && e.time < end)
     .map((e): TideExtreme => ({
       time: e.time,
