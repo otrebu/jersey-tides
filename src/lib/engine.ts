@@ -294,6 +294,12 @@ C['3MS8'] = compound('3MS8', [{ c: C.M2, factor: 3 }, { c: C.S2, factor: 1 }])
 C['2MS8'] = compound('2MS8', [{ c: C.M2, factor: 2 }, { c: C.S2, factor: 2 }])
 C['2MSN8'] = compound('2MSN8', [{ c: C.M2, factor: 2 }, { c: C.S2, factor: 1 }, { c: C.N2, factor: 1 }])
 C.M10 = compound('M10', [{ c: C.M2, factor: 5 }])
+C['2MK5'] = compound('2MK5', [{ c: C.M2, factor: 2 }, { c: C.K1, factor: 1 }])
+C['2SK5'] = compound('2SK5', [{ c: C.S2, factor: 2 }, { c: C.K1, factor: 1 }])
+C['2MO5'] = compound('2MO5', [{ c: C.M2, factor: 2 }, { c: C.O1, factor: 1 }])
+C['3MK7'] = compound('3MK7', [{ c: C.M2, factor: 3 }, { c: C.K1, factor: 1 }])
+C['3MO7'] = compound('3MO7', [{ c: C.M2, factor: 3 }, { c: C.O1, factor: 1 }])
+C['2MN2'] = compound('2MN2', [{ c: C.M2, factor: 2 }, { c: C.N2, factor: -1 }])
 
 export const CATALOG = C
 

@@ -110,7 +110,7 @@ export function TideEvents({ extremes, sunTimes, moonPhase, selectedDate }: Tide
 
       {/* Footer */}
       <div className="px-2.5 py-1.5 text-[0.5rem] text-[var(--text-muted)] text-center border-t border-[var(--text-muted)]/10">
-        CALCULATED · ±10 MIN TYPICAL ACCURACY
+        CALCULATED · ±5 MIN TYPICAL ACCURACY
       </div>
     </div>
   )

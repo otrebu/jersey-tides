@@ -19,7 +19,17 @@ const opt = Object.fromEntries(args.slice(2).map((a) => a.replace(/^--/, '').spl
 const TRAIN = opt.train ?? 'all'
 const BETA = Number(opt.beta ?? 1.5) // metre-equivalent penalty per hour of time error
 const ITERS = Number(opt.iters ?? 3)
-const CURV_FLOOR = 0.12 // m/h^2 — below this the official time itself is fuzzy (flat/double tides)
+const CURV_FLOOR = Number(opt.floor ?? 0.12) // m/h^2 — below this the official time itself is fuzzy
+// IRLS tail attack: events whose proxy |dt| exceeds this (minutes) get their timing
+// weight boosted quadratically, so the fit trades mean error for max error.
+const TAIL_MIN = Number(opt.tail ?? 0)
+const EXTRA = (opt.extra ?? '') === '' ? [] : opt.extra.split(',')
+// Optional observation-derived prior (published-constituents.json format): recenters
+// the ridge for matching names at long-record observed values, which anchors weakly
+// determined terms and reduces far-window extrapolation variance.
+const PRIOR_PATH = opt.prior
+const PRIOR_MATCH = opt.priorMatch ?? 'bodc'
+const NAME_ALIASES = { LAMBDA2: 'LAM2', RHO1: 'RHO' }
 
 const NAMES = [
   'M2', 'S2', 'N2', 'K2', 'L2', 'T2', 'R2', '2N2', 'MU2', 'NU2', 'LAM2', '2SM2',
@@ -30,6 +40,7 @@ const NAMES = [
   'M6', 'S6', '2MS6', '2MN6', 'MSN6', '2SM6', 'MSK6',
   'M8', '3MS8', '2MS8', '2MSN8', 'M10',
   'SA', 'SSA', 'MM', 'MF', 'MSF',
+  ...EXTRA,
 ]
 for (const n of NAMES) if (!CATALOG[n]) throw new Error(`engine missing ${n}`)
 
@@ -56,16 +67,31 @@ const K = NAMES.length
 const P = 2 * K + 1
 const B = events.map((e) => evalBasis(NAMES, e.time))
 
-// prior from current app constants
+// prior center: published long-record constants where available (--prior), else
+// current app constants
+const published = new Map()
+if (PRIOR_PATH) {
+  const sources = JSON.parse(readFileSync(PRIOR_PATH, 'utf8'))
+  const src = sources.find((s) => JSON.stringify(s).toLowerCase().includes(PRIOR_MATCH))
+  if (!src) throw new Error(`no prior source matching "${PRIOR_MATCH}"`)
+  for (const c of src.constituents) published.set(NAME_ALIASES[c.name] ?? c.name, c)
+  console.log(`prior recentered on ${published.size} published constituents (${src.source.slice(0, 60)}...)`)
+}
 const prior = new Float64Array(P)
+let recentered = 0
 for (let k = 0; k < K; k++) {
-  const c = ST_HELIER_CONSTITUENTS.find((c) => c.name === NAMES[k])
+  const pub = published.get(NAMES[k])
+  const c = pub
+    ? { amplitude: pub.amplitude_m, phase_GMT: pub.phase_deg }
+    : ST_HELIER_CONSTITUENTS.find((c) => c.name === NAMES[k])
+  if (pub) recentered++
   if (c) {
     const g = (c.phase_GMT * Math.PI) / 180
     prior[k] = c.amplitude * Math.cos(g)
     prior[K + k] = c.amplitude * Math.sin(g)
   }
 }
+if (PRIOR_PATH) console.log(`${recentered}/${K} fit names anchored at published values`)
 prior[2 * K] = DATUM
 
 function solve(weights) {
@@ -148,21 +174,25 @@ function curvatures(pred) {
 
 let refPred = createPredictor(ST_HELIER_CONSTITUENTS)
 let theta = null
+let tailBoost = events.map(() => 1)
 for (let it = 0; it < ITERS; it++) {
   const curv = curvatures(refPred)
-  const weights = curv.map((c) => BETA / Math.max(c, CURV_FLOOR))
+  const weights = curv.map((c, n) => (BETA / Math.max(c, CURV_FLOOR)) * tailBoost[n])
   theta = solve(weights)
   const fit = toConstants(theta)
   refPred = createPredictor(fit.constituents)
-  // quick in-sample timing diagnostic
+  // in-sample timing proxy + tail reweighting for the next iteration
   let sumAbs = 0
   let worst = 0
+  const dts = []
   for (let n = 0; n < events.length; n++) {
     const slope = refPred.slopeAt(events[n].time)
-    const dtMin = Math.abs(slope) / Math.max(curv[n], CURV_FLOOR) * 60
+    const dtMin = (Math.abs(slope) / Math.max(curv[n], CURV_FLOOR)) * 60
+    dts.push(dtMin)
     sumAbs += dtMin
     worst = Math.max(worst, dtMin)
   }
+  if (TAIL_MIN > 0) tailBoost = dts.map((dt) => Math.min(1 + (dt / TAIL_MIN) ** 2, 25))
   console.log(`iter ${it + 1}: in-sample |dt| mean=${(sumAbs / events.length).toFixed(1)}min worst≈${worst.toFixed(0)}min`)
 }
 
