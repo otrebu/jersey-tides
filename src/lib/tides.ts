@@ -36,17 +36,22 @@ export function getDayExtremes(date: Date): TideExtreme[] {
   const end = new Date(start)
   end.setDate(end.getDate() + 1)
 
+  // Pad the search window: the engine cannot detect an extreme lying exactly on
+  // a window edge, so a high/low falling at midnight would otherwise be dropped.
+  const padMs = 60 * 60 * 1000
   const prediction: Array<{ time: Date; level: number; high: boolean }> = predictor.getExtremesPrediction({
-    start,
-    end,
+    start: new Date(start.getTime() - padMs),
+    end: new Date(end.getTime() + padMs),
     timeFidelity: 60 // 1 minute resolution in seconds
   })
 
-  return prediction.map((e): TideExtreme => ({
-    time: e.time,
-    height: DATUM + e.level,
-    type: e.high ? 'high' : 'low'
-  }))
+  return prediction
+    .filter(e => e.time >= start && e.time < end)
+    .map((e): TideExtreme => ({
+      time: e.time,
+      height: DATUM + e.level,
+      type: e.high ? 'high' : 'low'
+    }))
 }
 
 /**
