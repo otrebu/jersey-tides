@@ -3,3 +3,9 @@ dist/
 .wrangler/
 *.log
 .DS_Store
+
+# Swift / Xcode (ios/) — .xcodeproj is XcodeGen-generated, never committed
+.build/
+.swiftpm/
+xcuserdata/
+*.xcodeproj
