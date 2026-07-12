@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      # Full history: the engine-move identity gate reads the pre-migration
+      # baseline commit via `git show <sha>:...`.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # No version input: pnpm/action-setup reads the `packageManager` field
+      # (pnpm@10.26.2) so CI matches local dev exactly.
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build all packages
+        run: pnpm -r build
+
+      # fit-tools has no tsc/tsconfig, so a bare `pnpm -r exec tsc` fails there.
+      # Mirror the root `typecheck` script and skip it.
+      - name: Typecheck
+        run: pnpm -r --filter '!fit-tools' exec tsc --noEmit
+
+      - name: Test
+        run: pnpm -r test
+
+      - name: Engine-move identity gate (TS type-stripping smoke)
+        run: node tools/fit/verify-engine-move.mjs
+
+      - name: Guard - 'use client' directive survives the build
+        run: |
+          directive="$(head -n1 packages/react/dist/index.js | tr -d "\"';")"
+          if [ "$directive" != "use client" ]; then
+            echo "packages/react/dist/index.js must start with a 'use client' directive, got: $directive"
+            exit 1
+          fi
+
+      - name: Guard - no un-namespaced CSS custom properties
+        run: |
+          leaks="$(grep -rn 'var(--' packages/react/src | grep -v ubtide | wc -l | tr -d ' ')"
+          if [ "$leaks" != "0" ]; then
+            echo "Found $leaks var(--...) reference(s) outside the --ubtide-* namespace:"
+            grep -rn 'var(--' packages/react/src | grep -v ubtide
+            exit 1
+          fi
+
+      - name: publint (core)
+        run: npx publint run
+        working-directory: packages/core
+
+      - name: publint (react)
+        run: npx publint run
+        working-directory: packages/react
+
+      # ESM-only packages: node10 (no exports support) and CJS-require of an ESM
+      # file are expected non-issues, silenced by --profile esm-only. The react
+      # `./styles.css` export is a stylesheet with no type resolution, so it is
+      # excluded from the type checker.
+      - name: attw (core)
+        run: npx @arethetypeswrong/cli --pack . --profile esm-only
+        working-directory: packages/core
+
+      - name: attw (react)
+        run: npx @arethetypeswrong/cli --pack . --profile esm-only --exclude-entrypoints styles.css
+        working-directory: packages/react

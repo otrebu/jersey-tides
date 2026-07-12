@@ -1,0 +1,430 @@
+{
+  "sun": [
+    {
+      "day": {
+        "year": 2026,
+        "month": 3,
+        "day": 20
+      },
+      "tz": "Europe/Jersey",
+      "sunrise": "2026-03-20T06:11:30.996Z",
+      "sunset": "2026-03-20T18:21:12.349Z",
+      "dayLength": {
+        "hours": 12,
+        "minutes": 10
+      }
+    },
+    {
+      "day": {
+        "year": 2026,
+        "month": 6,
+        "day": 21
+      },
+      "tz": "Europe/Jersey",
+      "sunrise": "2026-06-21T04:03:13.675Z",
+      "sunset": "2026-06-21T20:17:21.310Z",
+      "dayLength": {
+        "hours": 16,
+        "minutes": 14
+      }
+    },
+    {
+      "day": {
+        "year": 2026,
+        "month": 9,
+        "day": 23
+      },
+      "tz": "Europe/Jersey",
+      "sunrise": "2026-09-23T05:56:16.873Z",
+      "sunset": "2026-09-23T18:04:30.984Z",
+      "dayLength": {
+        "hours": 12,
+        "minutes": 8
+      }
+    },
+    {
+      "day": {
+        "year": 2026,
+        "month": 12,
+        "day": 21
+      },
+      "tz": "Europe/Jersey",
+      "sunrise": "2026-12-21T08:00:35.814Z",
+      "sunset": "2026-12-21T16:12:29.551Z",
+      "dayLength": {
+        "hours": 8,
+        "minutes": 12
+      }
+    },
+    {
+      "day": {
+        "year": 2026,
+        "month": 1,
+        "day": 1
+      },
+      "tz": "Europe/Jersey",
+      "sunrise": "2026-01-01T08:03:20.024Z",
+      "sunset": "2026-01-01T16:20:55.489Z",
+      "dayLength": {
+        "hours": 8,
+        "minutes": 18
+      }
+    },
+    {
+      "day": {
+        "year": 2026,
+        "month": 2,
+        "day": 1
+      },
+      "tz": "Europe/Jersey",
+      "sunrise": "2026-02-01T07:39:37.770Z",
+      "sunset": "2026-02-01T17:05:04.157Z",
+      "dayLength": {
+        "hours": 9,
+        "minutes": 25
+      }
+    },
+    {
+      "day": {
+        "year": 2026,
+        "month": 3,
+        "day": 1
+      },
+      "tz": "Europe/Jersey",
+      "sunrise": "2026-03-01T06:50:57.694Z",
+      "sunset": "2026-03-01T17:51:25.182Z",
+      "dayLength": {
+        "hours": 11,
+        "minutes": 0
+      }
+    },
+    {
+      "day": {
+        "year": 2026,
+        "month": 4,
+        "day": 1
+      },
+      "tz": "Europe/Jersey",
+      "sunrise": "2026-04-01T05:46:03.725Z",
+      "sunset": "2026-04-01T18:39:30.703Z",
+      "dayLength": {
+        "hours": 12,
+        "minutes": 53
+      }
+    },
+    {
+      "day": {
+        "year": 2026,
+        "month": 5,
+        "day": 1
+      },
+      "tz": "Europe/Jersey",
+      "sunrise": "2026-05-01T04:47:19.351Z",
+      "sunset": "2026-05-01T19:24:47.594Z",
+      "dayLength": {
+        "hours": 14,
+        "minutes": 37
+      }
+    },
+    {
+      "day": {
+        "year": 2026,
+        "month": 6,
+        "day": 1
+      },
+      "tz": "Europe/Jersey",
+      "sunrise": "2026-06-01T04:08:08.300Z",
+      "sunset": "2026-06-01T20:05:05.406Z",
+      "dayLength": {
+        "hours": 15,
+        "minutes": 57
+      }
+    },
+    {
+      "day": {
+        "year": 2026,
+        "month": 7,
+        "day": 1
+      },
+      "tz": "Europe/Jersey",
+      "sunrise": "2026-07-01T04:07:27.779Z",
+      "sunset": "2026-07-01T20:16:59.028Z",
+      "dayLength": {
+        "hours": 16,
+        "minutes": 10
+      }
+    },
+    {
+      "day": {
+        "year": 2026,
+        "month": 8,
+        "day": 1
+      },
+      "tz": "Europe/Jersey",
+      "sunrise": "2026-08-01T04:40:34.441Z",
+      "sunset": "2026-08-01T19:48:11.309Z",
+      "dayLength": {
+        "hours": 15,
+        "minutes": 8
+      }
+    },
+    {
+      "day": {
+        "year": 2026,
+        "month": 9,
+        "day": 1
+      },
+      "tz": "Europe/Jersey",
+      "sunrise": "2026-09-01T05:24:36.415Z",
+      "sunset": "2026-09-01T18:51:22.919Z",
+      "dayLength": {
+        "hours": 13,
+        "minutes": 27
+      }
+    },
+    {
+      "day": {
+        "year": 2026,
+        "month": 10,
+        "day": 1
+      },
+      "tz": "Europe/Jersey",
+      "sunrise": "2026-10-01T06:07:59.623Z",
+      "sunset": "2026-10-01T17:47:24.656Z",
+      "dayLength": {
+        "hours": 11,
+        "minutes": 39
+      }
+    },
+    {
+      "day": {
+        "year": 2026,
+        "month": 11,
+        "day": 1
+      },
+      "tz": "Europe/Jersey",
+      "sunrise": "2026-11-01T06:55:57.896Z",
+      "sunset": "2026-11-01T16:47:21.780Z",
+      "dayLength": {
+        "hours": 9,
+        "minutes": 51
+      }
+    },
+    {
+      "day": {
+        "year": 2026,
+        "month": 12,
+        "day": 1
+      },
+      "tz": "Europe/Jersey",
+      "sunrise": "2026-12-01T07:41:43.277Z",
+      "sunset": "2026-12-01T16:12:56.648Z",
+      "dayLength": {
+        "hours": 8,
+        "minutes": 31
+      }
+    }
+  ],
+  "moonEvents": [
+    {
+      "type": "full",
+      "utc": "2026-01-03T10:02:50.038Z"
+    },
+    {
+      "type": "last_quarter",
+      "utc": "2026-01-10T15:48:23.497Z"
+    },
+    {
+      "type": "new",
+      "utc": "2026-01-18T19:52:00.918Z"
+    },
+    {
+      "type": "first_quarter",
+      "utc": "2026-01-26T04:47:27.861Z"
+    },
+    {
+      "type": "full",
+      "utc": "2026-02-01T22:09:12.259Z"
+    },
+    {
+      "type": "last_quarter",
+      "utc": "2026-02-09T12:43:09.534Z"
+    },
+    {
+      "type": "new",
+      "utc": "2026-02-17T12:01:08.667Z"
+    },
+    {
+      "type": "first_quarter",
+      "utc": "2026-02-24T12:27:37.854Z"
+    },
+    {
+      "type": "full",
+      "utc": "2026-03-03T11:37:51.397Z"
+    },
+    {
+      "type": "last_quarter",
+      "utc": "2026-03-11T09:38:32.955Z"
+    },
+    {
+      "type": "new",
+      "utc": "2026-03-19T01:23:24.073Z"
+    },
+    {
+      "type": "first_quarter",
+      "utc": "2026-03-25T19:17:35.842Z"
+    },
+    {
+      "type": "full",
+      "utc": "2026-04-02T02:11:56.096Z"
+    },
+    {
+      "type": "last_quarter",
+      "utc": "2026-04-10T04:51:40.578Z"
+    },
+    {
+      "type": "new",
+      "utc": "2026-04-17T11:51:41.889Z"
+    },
+    {
+      "type": "first_quarter",
+      "utc": "2026-04-24T02:31:39.428Z"
+    },
+    {
+      "type": "full",
+      "utc": "2026-05-01T17:23:10.430Z"
+    },
+    {
+      "type": "last_quarter",
+      "utc": "2026-05-09T21:10:29.002Z"
+    },
+    {
+      "type": "new",
+      "utc": "2026-05-16T20:00:56.157Z"
+    },
+    {
+      "type": "first_quarter",
+      "utc": "2026-05-23T11:10:52.163Z"
+    },
+    {
+      "type": "full",
+      "utc": "2026-05-31T08:45:11.273Z"
+    },
+    {
+      "type": "last_quarter",
+      "utc": "2026-06-08T10:00:27.208Z"
+    },
+    {
+      "type": "new",
+      "utc": "2026-06-15T02:54:02.965Z"
+    },
+    {
+      "type": "first_quarter",
+      "utc": "2026-06-21T21:55:15.814Z"
+    },
+    {
+      "type": "full",
+      "utc": "2026-06-29T23:56:38.184Z"
+    },
+    {
+      "type": "last_quarter",
+      "utc": "2026-07-07T19:28:54.230Z"
+    },
+    {
+      "type": "new",
+      "utc": "2026-07-14T09:43:29.071Z"
+    },
+    {
+      "type": "first_quarter",
+      "utc": "2026-07-21T11:05:30.613Z"
+    },
+    {
+      "type": "full",
+      "utc": "2026-07-29T14:35:37.961Z"
+    },
+    {
+      "type": "last_quarter",
+      "utc": "2026-08-06T02:21:27.915Z"
+    },
+    {
+      "type": "new",
+      "utc": "2026-08-12T17:36:35.237Z"
+    },
+    {
+      "type": "first_quarter",
+      "utc": "2026-08-20T02:46:15.253Z"
+    },
+    {
+      "type": "full",
+      "utc": "2026-08-28T04:18:25.224Z"
+    },
+    {
+      "type": "last_quarter",
+      "utc": "2026-09-04T07:51:10.180Z"
+    },
+    {
+      "type": "new",
+      "utc": "2026-09-11T03:26:50.042Z"
+    },
+    {
+      "type": "first_quarter",
+      "utc": "2026-09-18T20:43:34.246Z"
+    },
+    {
+      "type": "full",
+      "utc": "2026-09-26T16:48:57.356Z"
+    },
+    {
+      "type": "last_quarter",
+      "utc": "2026-10-03T13:24:57.056Z"
+    },
+    {
+      "type": "new",
+      "utc": "2026-10-10T15:49:56.086Z"
+    },
+    {
+      "type": "first_quarter",
+      "utc": "2026-10-18T16:12:30.835Z"
+    },
+    {
+      "type": "full",
+      "utc": "2026-10-26T04:11:42.852Z"
+    },
+    {
+      "type": "last_quarter",
+      "utc": "2026-11-01T20:28:21.912Z"
+    },
+    {
+      "type": "new",
+      "utc": "2026-11-09T07:01:56.641Z"
+    },
+    {
+      "type": "first_quarter",
+      "utc": "2026-11-17T11:47:44.438Z"
+    },
+    {
+      "type": "full",
+      "utc": "2026-11-24T14:53:25.898Z"
+    },
+    {
+      "type": "last_quarter",
+      "utc": "2026-12-01T06:08:36.614Z"
+    },
+    {
+      "type": "new",
+      "utc": "2026-12-09T00:51:45.761Z"
+    },
+    {
+      "type": "first_quarter",
+      "utc": "2026-12-17T05:42:35.008Z"
+    },
+    {
+      "type": "full",
+      "utc": "2026-12-24T01:28:08.002Z"
+    },
+    {
+      "type": "last_quarter",
+      "utc": "2026-12-30T18:59:28.716Z"
+    }
+  ]
+}

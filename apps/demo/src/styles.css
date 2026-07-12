@@ -1,0 +1,12 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #f8f8f8;
+  --text: #111;
+  --text-muted: #555;
+  --font-family: "SF Mono", Consolas, monospace;
+}
+
+body {
+  font-family: var(--font-family);
+}
