@@ -1,0 +1,86 @@
+@layer theme, base, components, utilities;
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities);
+
+/*
+ * Scoped stand-in for the parts of Tailwind preflight the widget relies on.
+ * No preflight import: the widget must not restyle the host page.
+ */
+@layer base {
+  .ubtide,
+  .ubtide *,
+  .ubtide *::before,
+  .ubtide *::after {
+    box-sizing: border-box;
+    border: 0 solid;
+  }
+
+  .ubtide {
+    margin: 0;
+    width: 100%;
+    line-height: 1.5;
+    font-family: var(--ubtide-font-family);
+  }
+
+  .ubtide h1,
+  .ubtide h2,
+  .ubtide h3,
+  .ubtide p {
+    margin: 0;
+    font-size: inherit;
+    font-weight: inherit;
+  }
+
+  .ubtide button {
+    font: inherit;
+    color: inherit;
+    background: transparent;
+    padding: 0;
+    cursor: pointer;
+  }
+
+  .ubtide svg {
+    display: block;
+    vertical-align: middle;
+  }
+
+  /*
+   * Default theme (brutalist). Card borders default to 0px width: the
+   * pre-split --card-border compound token never rendered, so 0px preserves
+   * today's pixels. Set --ubtide-card-border-width: 2px for the intended
+   * brutalist card border.
+   */
+  .ubtide {
+    --ubtide-bg: #f8f8f8;
+    --ubtide-card-bg: #fff;
+    --ubtide-card-border-width: 0px;
+    --ubtide-card-border-color: #111;
+    --ubtide-border-strong: #111;
+    --ubtide-header-bg: #f0f0f0;
+    --ubtide-header-text: #111;
+    --ubtide-text: #111;
+    --ubtide-text-muted: #555;
+    --ubtide-accent: #111;
+    --ubtide-current-bg: #111;
+    --ubtide-current-text: #fff;
+    --ubtide-current-muted: #aaa;
+    --ubtide-high-bg: #111;
+    --ubtide-high-text: #fff;
+    --ubtide-low-bg: #fff;
+    --ubtide-low-text: #111;
+    --ubtide-low-border: #111;
+    --ubtide-selected-bg: #111;
+    --ubtide-selected-text: #fff;
+    --ubtide-today-border: #111;
+    --ubtide-curve-stroke: #111;
+    --ubtide-curve-dot: #111;
+    --ubtide-curve-dot-low: #fff;
+    --ubtide-bar-bg: #e5e5e5;
+    --ubtide-bar-fill: #111;
+    --ubtide-sun-moon-bg: #f5f5f5;
+    --ubtide-sun-color: #d97706;
+    --ubtide-font-family: 'SF Mono', Consolas, monospace;
+    --ubtide-border-radius: 0;
+    --ubtide-shadow: none;
+  }
+}

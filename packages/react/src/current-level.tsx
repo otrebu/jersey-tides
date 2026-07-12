@@ -1,40 +1,49 @@
-import { formatTime } from '@/lib/utils'
-import type { CurrentTide, TideExtreme } from '@/lib/tides'
-import type { MoonPhaseInfo } from '@/lib/astronomy'
+import { formatTime } from '@u-b/tides-core'
+import type { CurrentTide, TideExtreme } from '@u-b/tides-core'
+import type { MoonPhaseInfo } from '@u-b/tides-core/almanac'
 
-interface CurrentLevelProps {
+export interface CurrentLevelProps {
   currentLevel: CurrentTide | null
   isToday: boolean
-  selectedDate: Date
-  moonPhase: MoonPhaseInfo
+  /** UTC instant of the viewed day's local midnight; null pre-mount without props */
+  dayStart: Date | null
+  timeZone: string
+  moonPhase: MoonPhaseInfo | null
   extremes: TideExtreme[]
 }
 
-export function CurrentLevel({ currentLevel, isToday, selectedDate, moonPhase, extremes }: CurrentLevelProps) {
+export function CurrentLevel({ currentLevel, isToday, dayStart, timeZone, moonPhase, extremes }: CurrentLevelProps) {
+  const dateLabel = dayStart
+    ? new Intl.DateTimeFormat('en-GB', { timeZone, day: 'numeric', month: 'short' }).format(dayStart)
+    : '--'
+  const yearLabel = dayStart
+    ? new Intl.DateTimeFormat('en-GB', { timeZone, year: 'numeric' }).format(dayStart)
+    : ''
+
   return (
-    <div className="w-full max-w-[360px] md:max-w-[480px] lg:max-w-[540px] mb-2 px-3 py-2.5 md:px-4 md:py-3 bg-[var(--current-bg)] text-[var(--current-text)] rounded-[var(--border-radius)] shadow-[var(--shadow)] border-[var(--card-border)]">
+    <div className="ubtide-current w-full mb-2 px-3 py-2.5 md:px-4 md:py-3 bg-[var(--ubtide-current-bg)] text-[var(--ubtide-current-text)] rounded-[var(--ubtide-border-radius)] shadow-[var(--ubtide-shadow)] border-[length:var(--ubtide-card-border-width)] border-[color:var(--ubtide-card-border-color)]">
       <div className="flex items-baseline gap-2.5">
         <span className="text-[0.55rem] font-bold tracking-wider">
           {isToday ? 'NOW' : 'VIEWING'}
         </span>
         <span className="text-2xl md:text-3xl font-black">
-          {isToday && currentLevel
-            ? `${currentLevel.height.toFixed(1)}m`
-            : selectedDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+          {isToday && currentLevel ? `${currentLevel.height.toFixed(1)}m` : dateLabel}
         </span>
         <span className="text-[0.6rem] font-bold">
           {isToday && currentLevel
             ? currentLevel.rising ? '↑ RISING' : '↓ FALLING'
-            : selectedDate.getFullYear()}
+            : yearLabel}
         </span>
         <span className="text-xl ml-auto">
-          {moonPhase.emoji}
+          {moonPhase?.emoji ?? ''}
         </span>
       </div>
-      <div className="text-[0.55rem] text-[var(--current-muted)] mt-1">
+      <div className="text-[0.55rem] text-[var(--ubtide-current-muted)] mt-1">
         {isToday && currentLevel?.nextExtreme
-          ? `Next ${currentLevel.nextExtreme.type} at ${formatTime(currentLevel.nextExtreme.time)}`
-          : `${extremes.length} tides · ${moonPhase.name}`}
+          ? `Next ${currentLevel.nextExtreme.type} at ${formatTime(currentLevel.nextExtreme.time, timeZone)}`
+          : moonPhase
+            ? `${extremes.length} tides · ${moonPhase.name}`
+            : ' '}
       </div>
     </div>
   )

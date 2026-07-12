@@ -1,15 +1,17 @@
-import { SunriseIcon, SunsetIcon } from './icons'
-import type { TideExtreme } from '@/lib/tides'
-import type { SunTimes } from '@/lib/astronomy'
+import { SunriseIcon, SunsetIcon } from './icons.tsx'
+import type { TideExtreme } from '@u-b/tides-core'
+import type { SunTimes } from '@u-b/tides-core/almanac'
 
-interface TideCurveProps {
+export interface TideCurveProps {
   extremes: TideExtreme[]
-  currentTime: Date
+  /** UTC instant of the viewed day's local midnight */
+  dayStart: Date
+  currentTime: Date | null
   isToday: boolean
   sunTimes: SunTimes
 }
 
-export function TideCurve({ extremes, currentTime, isToday, sunTimes }: TideCurveProps) {
+export function TideCurve({ extremes, dayStart, currentTime, isToday, sunTimes }: TideCurveProps) {
   if (extremes.length < 2) return null
 
   const width = 340
@@ -19,8 +21,10 @@ export function TideCurve({ extremes, currentTime, isToday, sunTimes }: TideCurv
   const cw = width - pad.left - pad.right
   const ch = height - pad.top - pad.bottom
 
+  const hourOf = (t: Date) => (t.getTime() - dayStart.getTime()) / 3.6e6
+
   const tidePoints = extremes.map(e => ({
-    hour: e.time.getHours() + e.time.getMinutes() / 60,
+    hour: hourOf(e.time),
     height: e.height,
     type: e.type
   }))
@@ -59,24 +63,23 @@ export function TideCurve({ extremes, currentTime, isToday, sunTimes }: TideCurv
     return `${i === 0 ? 'M' : 'L'} ${x} ${y}`
   }).join(' ')
 
-  const curHour = currentTime.getHours() + currentTime.getMinutes() / 60
-  const curX = pad.left + (curHour / 24) * cw
+  const curX = currentTime ? pad.left + (hourOf(currentTime) / 24) * cw : null
 
   const srX = sunTimes.sunrise
-    ? pad.left + ((sunTimes.sunrise.getHours() + sunTimes.sunrise.getMinutes() / 60) / 24) * cw
+    ? pad.left + (hourOf(sunTimes.sunrise) / 24) * cw
     : null
   const ssX = sunTimes.sunset
-    ? pad.left + ((sunTimes.sunset.getHours() + sunTimes.sunset.getMinutes() / 60) / 24) * cw
+    ? pad.left + (hourOf(sunTimes.sunset) / 24) * cw
     : null
 
   return (
     <svg viewBox={viewBox} className="block w-full h-auto">
       {/* Night shading */}
       {srX && (
-        <rect x={pad.left} y={pad.top} width={srX - pad.left} height={ch} className="fill-[var(--text)] opacity-[0.06]" />
+        <rect x={pad.left} y={pad.top} width={srX - pad.left} height={ch} className="fill-[var(--ubtide-text)] opacity-[0.06]" />
       )}
       {ssX && (
-        <rect x={ssX} y={pad.top} width={pad.left + cw - ssX} height={ch} className="fill-[var(--text)] opacity-[0.06]" />
+        <rect x={ssX} y={pad.top} width={pad.left + cw - ssX} height={ch} className="fill-[var(--ubtide-text)] opacity-[0.06]" />
       )}
 
       {/* Time grid lines */}
@@ -87,14 +90,14 @@ export function TideCurve({ extremes, currentTime, isToday, sunTimes }: TideCurv
             y1={pad.top}
             x2={pad.left + (h / 24) * cw}
             y2={pad.top + ch}
-            className="stroke-[var(--text-muted)] opacity-30"
+            className="stroke-[var(--ubtide-text-muted)] opacity-30"
             strokeWidth="1"
           />
           <text
             x={pad.left + (h / 24) * cw}
             y={height - 3}
             textAnchor="middle"
-            className="text-[9px] fill-[var(--text-muted)]"
+            className="text-[9px] fill-[var(--ubtide-text-muted)]"
           >
             {String(h % 24).padStart(2, '0')}
           </text>
@@ -104,9 +107,9 @@ export function TideCurve({ extremes, currentTime, isToday, sunTimes }: TideCurv
       {/* Sunrise line and icon */}
       {srX && (
         <>
-          <line x1={srX} y1={pad.top} x2={srX} y2={pad.top + ch} className="stroke-[var(--sun-color)] opacity-70" strokeWidth="1.5" />
+          <line x1={srX} y1={pad.top} x2={srX} y2={pad.top + ch} className="stroke-[var(--ubtide-sun-color)] opacity-70" strokeWidth="1.5" />
           <g transform={`translate(${srX - 6}, ${pad.top - 14})`}>
-            <SunriseIcon color="var(--sun-color)" size={12} />
+            <SunriseIcon color="var(--ubtide-sun-color)" size={12} />
           </g>
         </>
       )}
@@ -114,23 +117,23 @@ export function TideCurve({ extremes, currentTime, isToday, sunTimes }: TideCurv
       {/* Sunset line and icon */}
       {ssX && (
         <>
-          <line x1={ssX} y1={pad.top} x2={ssX} y2={pad.top + ch} className="stroke-[var(--sun-color)] opacity-70" strokeWidth="1.5" />
+          <line x1={ssX} y1={pad.top} x2={ssX} y2={pad.top + ch} className="stroke-[var(--ubtide-sun-color)] opacity-70" strokeWidth="1.5" />
           <g transform={`translate(${ssX - 6}, ${pad.top - 14})`}>
-            <SunsetIcon color="var(--sun-color)" size={12} />
+            <SunsetIcon color="var(--ubtide-sun-color)" size={12} />
           </g>
         </>
       )}
 
       {/* Y-axis labels */}
-      <text x={pad.left - 4} y={pad.top + 4} textAnchor="end" className="text-[9px] fill-[var(--text-muted)]">
+      <text x={pad.left - 4} y={pad.top + 4} textAnchor="end" className="text-[9px] fill-[var(--ubtide-text-muted)]">
         {maxH.toFixed(0)}m
       </text>
-      <text x={pad.left - 4} y={pad.top + ch} textAnchor="end" className="text-[9px] fill-[var(--text-muted)]">
+      <text x={pad.left - 4} y={pad.top + ch} textAnchor="end" className="text-[9px] fill-[var(--ubtide-text-muted)]">
         {minH.toFixed(0)}m
       </text>
 
       {/* Tide curve */}
-      <path d={pathD} fill="none" className="stroke-[var(--curve-stroke)]" strokeWidth="2.5" />
+      <path d={pathD} fill="none" className="stroke-[var(--ubtide-curve-stroke)]" strokeWidth="2.5" />
 
       {/* Extreme points */}
       {tidePoints.map((tp, i) => {
@@ -142,21 +145,21 @@ export function TideCurve({ extremes, currentTime, isToday, sunTimes }: TideCurv
             cx={x}
             cy={y}
             r="4.5"
-            className={`stroke-[var(--curve-stroke)] stroke-2 ${
-              tp.type === 'high' ? 'fill-[var(--curve-dot)]' : 'fill-[var(--curve-dot-low)]'
+            className={`stroke-[var(--ubtide-curve-stroke)] stroke-2 ${
+              tp.type === 'high' ? 'fill-[var(--ubtide-curve-dot)]' : 'fill-[var(--ubtide-curve-dot-low)]'
             }`}
           />
         )
       })}
 
       {/* Current time indicator */}
-      {isToday && (
+      {isToday && curX !== null && (
         <line
           x1={curX}
           y1={pad.top}
           x2={curX}
           y2={pad.top + ch}
-          className="stroke-[var(--accent)]"
+          className="stroke-[var(--ubtide-accent)]"
           strokeWidth="2"
           strokeDasharray="4,3"
         />
