@@ -20,6 +20,7 @@
     width: 100%;
     line-height: 1.5;
     font-family: var(--ubtide-font-family);
+    background: var(--ubtide-bg);
   }
 
   .ubtide h1,
@@ -51,7 +52,7 @@
    * brutalist card border.
    */
   .ubtide {
-    --ubtide-bg: #f8f8f8;
+    --ubtide-bg: transparent;
     --ubtide-card-bg: #fff;
     --ubtide-card-border-width: 0px;
     --ubtide-card-border-color: #111;

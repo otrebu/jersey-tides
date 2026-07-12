@@ -34,6 +34,12 @@ The widget renders its own content only. You own the page chrome:
   background/text colors.
 - **Constrain the width yourself** — every widget section is `width: 100%`
   (fluid). Wrap it in your own `max-width` container if you want a column.
+- **Known stylesheet globals** — besides the `.ubtide`-scoped rules,
+  `styles.css` carries Tailwind v4's declaration-only layers: `:root` theme
+  variables (`--spacing`, `--text-*`, `--color-*`, …) and `--tw-*` `@property`
+  fallbacks. They restyle nothing by themselves, but if your page also uses
+  Tailwind v4 with customized theme values, load your own stylesheet *after*
+  this one so yours wins.
 
 ```tsx
 <main className="min-h-screen bg-white text-black p-4">
@@ -103,7 +109,7 @@ card border:
 
 | Token | Colors / controls | Default |
 | --- | --- | --- |
-| `--ubtide-bg` | Widget base background | `#f8f8f8` |
+| `--ubtide-bg` | Widget background | `transparent` |
 | `--ubtide-card-bg` | Card surfaces (curve panel, calendar cells) | `#fff` |
 | `--ubtide-card-border-width` | Card border thickness (`0px` historical, `2px` brutalist) | `0px` |
 | `--ubtide-card-border-color` | Card border color | `#111` |

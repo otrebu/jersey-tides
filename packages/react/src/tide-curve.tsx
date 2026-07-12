@@ -6,12 +6,14 @@ export interface TideCurveProps {
   extremes: TideExtreme[]
   /** UTC instant of the viewed day's local midnight */
   dayStart: Date
+  /** UTC instant of the next local midnight (23/24/25h later on DST days) */
+  dayEnd: Date
   currentTime: Date | null
   isToday: boolean
   sunTimes: SunTimes
 }
 
-export function TideCurve({ extremes, dayStart, currentTime, isToday, sunTimes }: TideCurveProps) {
+export function TideCurve({ extremes, dayStart, dayEnd, currentTime, isToday, sunTimes }: TideCurveProps) {
   if (extremes.length < 2) return null
 
   const width = 340
@@ -22,6 +24,9 @@ export function TideCurve({ extremes, dayStart, currentTime, isToday, sunTimes }
   const ch = height - pad.top - pad.bottom
 
   const hourOf = (t: Date) => (t.getTime() - dayStart.getTime()) / 3.6e6
+  // 23/25 on DST transition days; scaling by it keeps every marker on-canvas
+  const dayHours = (dayEnd.getTime() - dayStart.getTime()) / 3.6e6
+  const xOf = (hour: number) => pad.left + (hour / dayHours) * cw
 
   const tidePoints = extremes.map(e => ({
     hour: hourOf(e.time),
@@ -49,8 +54,8 @@ export function TideCurve({ extremes, dayStart, currentTime, isToday, sunTimes }
   const last = tidePoints[tidePoints.length - 1]
   pts.push({ hour: last.hour, height: last.height })
 
-  if (last.hour < 24) {
-    pts.push({ hour: 24, height: (last.height + tidePoints[tidePoints.length - 2].height) / 2 })
+  if (last.hour < dayHours) {
+    pts.push({ hour: dayHours, height: (last.height + tidePoints[tidePoints.length - 2].height) / 2 })
   }
 
   const minH = Math.min(...pts.map(p => p.height)) - 0.5
@@ -58,19 +63,15 @@ export function TideCurve({ extremes, dayStart, currentTime, isToday, sunTimes }
   const range = maxH - minH
 
   const pathD = pts.map((p, i) => {
-    const x = (pad.left + (p.hour / 24) * cw).toFixed(1)
+    const x = xOf(p.hour).toFixed(1)
     const y = (pad.top + ch - ((p.height - minH) / range) * ch).toFixed(1)
     return `${i === 0 ? 'M' : 'L'} ${x} ${y}`
   }).join(' ')
 
-  const curX = currentTime ? pad.left + (hourOf(currentTime) / 24) * cw : null
+  const curX = currentTime ? xOf(hourOf(currentTime)) : null
 
-  const srX = sunTimes.sunrise
-    ? pad.left + (hourOf(sunTimes.sunrise) / 24) * cw
-    : null
-  const ssX = sunTimes.sunset
-    ? pad.left + (hourOf(sunTimes.sunset) / 24) * cw
-    : null
+  const srX = sunTimes.sunrise ? xOf(hourOf(sunTimes.sunrise)) : null
+  const ssX = sunTimes.sunset ? xOf(hourOf(sunTimes.sunset)) : null
 
   return (
     <svg viewBox={viewBox} className="block w-full h-auto">
@@ -82,24 +83,24 @@ export function TideCurve({ extremes, dayStart, currentTime, isToday, sunTimes }
         <rect x={ssX} y={pad.top} width={pad.left + cw - ssX} height={ch} className="fill-[var(--ubtide-text)] opacity-[0.06]" />
       )}
 
-      {/* Time grid lines */}
-      {[0, 6, 12, 18, 24].map(h => (
+      {/* Time grid lines — last line is the next local midnight (dayHours ≠ 24 on DST days) */}
+      {[0, 6, 12, 18, dayHours].map(h => (
         <g key={h}>
           <line
-            x1={pad.left + (h / 24) * cw}
+            x1={xOf(h)}
             y1={pad.top}
-            x2={pad.left + (h / 24) * cw}
+            x2={xOf(h)}
             y2={pad.top + ch}
             className="stroke-[var(--ubtide-text-muted)] opacity-30"
             strokeWidth="1"
           />
           <text
-            x={pad.left + (h / 24) * cw}
+            x={xOf(h)}
             y={height - 3}
             textAnchor="middle"
             className="text-[9px] fill-[var(--ubtide-text-muted)]"
           >
-            {String(h % 24).padStart(2, '0')}
+            {h === dayHours ? '00' : String(h).padStart(2, '0')}
           </text>
         </g>
       ))}
@@ -137,7 +138,7 @@ export function TideCurve({ extremes, dayStart, currentTime, isToday, sunTimes }
 
       {/* Extreme points */}
       {tidePoints.map((tp, i) => {
-        const x = pad.left + (tp.hour / 24) * cw
+        const x = xOf(tp.hour)
         const y = pad.top + ch - ((tp.height - minH) / range) * ch
         return (
           <circle

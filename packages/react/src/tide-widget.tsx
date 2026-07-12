@@ -138,6 +138,7 @@ export function TideWidget({
             <TideCurve
               extremes={extremes}
               dayStart={bounds.start}
+              dayEnd={bounds.end}
               currentTime={time}
               isToday={isTodaySelected}
               sunTimes={sunTimes}

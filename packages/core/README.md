@@ -49,11 +49,17 @@ const station = createStation({
   timeZone: 'Europe/Jersey', // calendar days are reckoned here
   datum: 5.9,                 // metres added to predictor output (chart datum)
   constituents: [
-    // { name, speed (deg/hr), amplitude (m), phase (deg) }
+    // { name, amplitude (m), phase_GMT (deg) }
+    // name must be one of the built-in CATALOG constituents (M2, S2, N2, K1, ...)
     // ...your fitted or published harmonic constants
   ]
 })
 ```
+
+Constituent names must exist in the engine's built-in `CATALOG` (exported for
+inspection) — `createStation` throws `Unknown constituents: ...` for any name
+it does not recognise. Speeds and nodal corrections come from the catalog;
+you supply only amplitude and Greenwich phase lag (`phase_GMT`).
 
 The sun/moon almanac (pure NOAA sun position + Meeus moon phase, no
 dependencies) is a separate entrypoint:
