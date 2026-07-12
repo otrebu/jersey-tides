@@ -1,0 +1,44 @@
+{
+  "name": "@u-b/tides-core",
+  "version": "0.1.0",
+  "description": "Harmonic tide prediction engine with timezone-correct station API, fitted for St Helier, Jersey",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "tides",
+    "harmonic",
+    "jersey",
+    "st-helier",
+    "tide-prediction"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/otrebu/jersey-tides.git",
+    "directory": "packages/core"
+  },
+  "homepage": "https://github.com/otrebu/jersey-tides#readme",
+  "bugs": {
+    "url": "https://github.com/otrebu/jersey-tides/issues"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./stations/st-helier": {
+      "types": "./dist/stations/st-helier.d.ts",
+      "default": "./dist/stations/st-helier.js"
+    }
+  },
+  "scripts": {
+    "build": "tsdown"
+  },
+  "devDependencies": {
+    "tsdown": "^0.22.3",
+    "typescript": "^5.9.3"
+  }
+}

@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { getMonthMoonPhaseEvents, type MoonPhaseEvent } from '@/lib/astronomy'
-import { DAYS, MONTHS } from '@/lib/constants'
+import { DAYS, MONTHS } from '@/lib/labels'
 import { isSameDay, isToday } from '@/lib/utils'
 
 interface CalendarProps {

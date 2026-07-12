@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@tanstack/react-router": "^1.144.0",
+    "@u-b/tides-core": "workspace:^",
     "astronomy-engine": "^2.1.19",
     "react": "^19.2.3",
     "react-dom": "^19.2.3"

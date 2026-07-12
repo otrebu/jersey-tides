@@ -1,31 +1,34 @@
+import {
+  formatDate as coreFormatDate,
+  formatTime as coreFormatTime,
+  sameCalendarDay
+} from '@u-b/tides-core'
+
+const TIME_ZONE = 'Europe/Jersey'
+
 /**
- * Format a Date to HH:MM time string
+ * Format a Date to HH:MM time string (Jersey local time)
  */
 export function formatTime(date: Date): string {
-  return date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+  return coreFormatTime(date, TIME_ZONE)
 }
 
 /**
- * Format a Date to a readable date string
+ * Format a Date to a readable date string (Jersey local time)
  */
 export function formatDate(date: Date): string {
-  return date.toLocaleDateString('en-GB', {
-    weekday: 'short',
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric'
-  }).toUpperCase()
+  return coreFormatDate(date, TIME_ZONE)
 }
 
 /**
- * Check if two dates are the same calendar day
+ * Check if two dates are the same calendar day in Jersey
  */
 export function isSameDay(a: Date, b: Date): boolean {
-  return a.toDateString() === b.toDateString()
+  return sameCalendarDay(a, b, TIME_ZONE)
 }
 
 /**
- * Check if date is today
+ * Check if date is today in Jersey
  */
 export function isToday(date: Date): boolean {
   return isSameDay(date, new Date())

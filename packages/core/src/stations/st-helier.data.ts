@@ -10,8 +10,8 @@ export const DATUM = 6.0887
 // and Jul-Dec 2026. Height rows + curvature-weighted zero-slope rows price extreme
 // TIMING directly (beta=8, tail-boosted worst offenders); ridge priors anchored at
 // TICON-4 33-year observed constants (Hart-Davis et al. 2025, seanoe 109129).
-// Basis/conventions are those of src/lib/engine.ts — engine-specific, do not use
-// with other predictors.
+// Basis/conventions are those of the harmonic engine in ../engine.ts —
+// engine-specific, do not use with other predictors.
 // Verified vs 931 events from 4 official sources (scripts/compare2.mjs):
 // extreme timing mean 1.2min / max 4.3min; heights mean 0.11m / max 0.39m.
 // For reference, gov.je (NOC) and SHOM disagree with each other by mean 1.7min /
@@ -89,7 +89,3 @@ export const ST_HELIER_CONSTITUENTS = [
   { name: 'MF', amplitude: 0.0146, phase_GMT: 187.17 },
   { name: 'MSF', amplitude: 0.0061, phase_GMT: 203.53 },
 ]
-
-// Day and month abbreviations
-export const DAYS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'] as const
-export const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'] as const
