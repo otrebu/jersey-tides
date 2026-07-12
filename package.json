@@ -10,6 +10,8 @@
     "build": "pnpm -r build",
     "typecheck": "pnpm -r --parallel exec tsc --noEmit",
     "test": "pnpm -r test",
-    "dev": "pnpm --filter demo dev"
+    "dev": "pnpm --filter demo dev",
+    "fixtures": "node tools/fit/gen-fixtures.mjs",
+    "refit:check": "node tools/fit/verify-engine-move.mjs"
   }
 }
