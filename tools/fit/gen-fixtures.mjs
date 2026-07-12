@@ -6,6 +6,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 
+import { getMoonPhaseEvents, getSunTimes } from '../../packages/core/src/almanac.ts'
 import { createPredictor } from '../../packages/core/src/engine.ts'
 import { ST_HELIER_CONSTITUENTS } from '../../packages/core/src/stations/st-helier.data.ts'
 import { stHelier } from '../../packages/core/src/stations/st-helier.ts'
@@ -94,12 +95,36 @@ const stationDays = stationDayList.map((day) => ({
   })),
 }))
 
+// --- almanac.json: 2026 sun times + moon phase events (regression pin) ---------
+const almanacSunDates = [
+  '2026-03-20', '2026-06-21', '2026-09-23', '2026-12-21',
+  ...firstOfMonth2026,
+]
+const almanacSun = almanacSunDates.map((d) => {
+  const [y, m, dd] = d.split('-').map(Number)
+  const day = { year: y, month: m, day: dd }
+  const sun = getSunTimes(day)
+  return {
+    day,
+    tz: 'Europe/Jersey',
+    sunrise: sun.sunrise ? sun.sunrise.toISOString() : null,
+    sunset: sun.sunset ? sun.sunset.toISOString() : null,
+    dayLength: sun.dayLength,
+  }
+})
+const almanacMoonEvents = getMoonPhaseEvents(
+  new Date('2026-01-01T00:00:00.000Z'),
+  new Date('2026-12-31T23:59:59.999Z')
+).map((e) => ({ type: e.type, utc: e.time.toISOString() }))
+const almanac = { sun: almanacSun, moonEvents: almanacMoonEvents }
+
 const meta = {
   generatedFrom: 'st-helier.data.ts',
   engine: 'packages/core/src/engine.ts',
   note:
     'Golden fixtures for @u-b/tides-core. Deterministic (seeded LCG, fixed date ranges). ' +
-    'levels/extremes are raw engine output (no datum); station-days heights include the chart datum. ' +
+    'levels/extremes are raw engine output (no datum); station-days heights include the chart datum; ' +
+    'almanac.json pins the zero-dep almanac (2026 sun times + moon phase events). ' +
     'Regenerate with `pnpm fixtures`; the core test suite replays these for exact equality.',
 }
 
@@ -107,9 +132,11 @@ const paths = [
   write('levels.json', levels),
   write('extremes.json', extremes),
   write('station-days.json', stationDays),
+  write('almanac.json', almanac),
   write('meta.json', meta),
 ]
 console.log(`levels:       ${levels.length} samples`)
 console.log(`extremes:     ${extremes.length} windows, ${extremes.reduce((s, w) => s + w.extremes.length, 0)} extremes`)
 console.log(`station-days: ${stationDays.length} days, ${stationDays.reduce((s, w) => s + w.extremes.length, 0)} extremes`)
+console.log(`almanac:      ${almanacSun.length} sun days, ${almanacMoonEvents.length} moon events`)
 for (const p of paths) console.log(`wrote ${p}`)

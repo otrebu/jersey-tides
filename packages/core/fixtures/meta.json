@@ -1,5 +1,5 @@
 {
   "generatedFrom": "st-helier.data.ts",
   "engine": "packages/core/src/engine.ts",
-  "note": "Golden fixtures for @u-b/tides-core. Deterministic (seeded LCG, fixed date ranges). levels/extremes are raw engine output (no datum); station-days heights include the chart datum. Regenerate with `pnpm fixtures`; the core test suite replays these for exact equality."
+  "note": "Golden fixtures for @u-b/tides-core. Deterministic (seeded LCG, fixed date ranges). levels/extremes are raw engine output (no datum); station-days heights include the chart datum; almanac.json pins the zero-dep almanac (2026 sun times + moon phase events). Regenerate with `pnpm fixtures`; the core test suite replays these for exact equality."
 }

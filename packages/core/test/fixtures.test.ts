@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
+import { getMoonPhaseEvents, getSunTimes } from '../src/almanac.ts'
 import { createPredictor } from '../src/engine.ts'
 import { ST_HELIER_CONSTITUENTS } from '../src/stations/st-helier.data.ts'
 import { stHelier } from '../src/stations/st-helier.ts'
@@ -19,6 +20,17 @@ const stationDays = load('station-days.json') as Array<{
   tz: string
   extremes: Array<{ utc: string; height: number; type: 'high' | 'low' }>
 }>
+
+const almanac = load('almanac.json') as {
+  sun: Array<{
+    day: { year: number; month: number; day: number }
+    tz: string
+    sunrise: string | null
+    sunset: string | null
+    dayLength: { hours: number; minutes: number } | null
+  }>
+  moonEvents: Array<{ type: string; utc: string }>
+}
 
 const predictor = createPredictor(ST_HELIER_CONSTITUENTS)
 
@@ -57,6 +69,30 @@ describe('golden replay: station days', () => {
         expect(got[i].height).toBe(d.extremes[i].height)
         expect(got[i].type).toBe(d.extremes[i].type)
       }
+    }
+  })
+})
+
+describe('golden replay: almanac', () => {
+  it('reproduces every sun time exactly', () => {
+    expect(almanac.sun.length).toBe(16)
+    for (const s of almanac.sun) {
+      const got = getSunTimes(s.day)
+      expect(got.sunrise ? got.sunrise.toISOString() : null).toBe(s.sunrise)
+      expect(got.sunset ? got.sunset.toISOString() : null).toBe(s.sunset)
+      expect(got.dayLength).toEqual(s.dayLength)
+    }
+  })
+
+  it('reproduces every 2026 moon phase event exactly', () => {
+    const got = getMoonPhaseEvents(
+      new Date('2026-01-01T00:00:00.000Z'),
+      new Date('2026-12-31T23:59:59.999Z')
+    )
+    expect(got.length).toBe(almanac.moonEvents.length)
+    for (let i = 0; i < got.length; i++) {
+      expect(got[i].type).toBe(almanac.moonEvents[i].type)
+      expect(got[i].time.toISOString()).toBe(almanac.moonEvents[i].utc)
     }
   })
 })

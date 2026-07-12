@@ -29,6 +29,10 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
+    "./almanac": {
+      "types": "./dist/almanac.d.ts",
+      "default": "./dist/almanac.js"
+    },
     "./stations/st-helier": {
       "types": "./dist/stations/st-helier.d.ts",
       "default": "./dist/stations/st-helier.js"
@@ -39,6 +43,7 @@
     "test": "vitest run"
   },
   "devDependencies": {
+    "astronomy-engine": "^2.1.19",
     "tsdown": "^0.22.3",
     "typescript": "^5.9.3",
     "vitest": "^4.1.9"
