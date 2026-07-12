@@ -12,6 +12,11 @@
     "test": "pnpm -r test",
     "dev": "pnpm --filter demo dev",
     "fixtures": "node tools/fit/gen-fixtures.mjs",
-    "refit:check": "node tools/fit/verify-engine-move.mjs"
+    "refit:check": "node tools/fit/verify-engine-move.mjs",
+    "changeset": "changeset",
+    "release:publish": "pnpm -r publish --access public --no-git-checks --provenance"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.31.0"
   }
 }

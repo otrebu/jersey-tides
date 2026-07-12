@@ -1,0 +1,75 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+# ============================================================================
+# TRUSTED PUBLISHING / OIDC CAVEAT — READ BEFORE ENABLING
+# ----------------------------------------------------------------------------
+# This workflow publishes @u-b/tides-core and @u-b/tides-react to npm with
+# provenance via npm's OIDC trusted publishing (no long-lived NPM_TOKEN).
+#
+# Two things must be true before this ever succeeds:
+#
+#   1. TRUSTED PUBLISHER CONFIGURED ON npmjs.com, PER PACKAGE.
+#      For EACH package (tides-core AND tides-react) go to the package's
+#      Settings -> Trusted Publishers on npmjs.com and add a GitHub Actions
+#      publisher: repo otrebu/jersey-tides, workflow `.github/workflows/release.yml`,
+#      with the `publish` action allowed/ticked. A trusted publisher cannot be
+#      registered for a package that does not exist yet, therefore:
+#
+#   2. THE FIRST PUBLISH OF EACH PACKAGE HAPPENS MANUALLY (see root README
+#      "publish bootstrap"). Only after 0.1.0 exists on npm and the trusted
+#      publisher is configured does this workflow take over subsequent releases.
+#
+# pnpm VERSION PIN — WHY 11.12.0 AND NOT THE REPO'S 10.26.2:
+#   The repo pins packageManager pnpm@10.26.2 for local dev. That predates the
+#   pnpm 11 OIDC work. pnpm 11.0.x–11.0.8 regressed OIDC publishing (404 on
+#   auth, pnpm#11513, fixed in pnpm#11526) and 11.11 further hardened OIDC
+#   credential redaction. 11.12.0 is the current pnpm 11 with all of that.
+#   We therefore pin 11.12.0 HERE only, for the publish step.
+#
+#   pnpm/action-setup@v4 THROWS "Multiple versions of pnpm specified" if its
+#   `version` input differs from the packageManager field AND checkout already
+#   ran. The supported override is to run action-setup BEFORE checkout, so no
+#   package.json is on disk to conflict with the pinned version. That ordering
+#   is intentional below — do not move checkout above action-setup.
+# ============================================================================
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      id-token: write
+    steps:
+      # Pinned pnpm for OIDC trusted publishing. MUST precede checkout so the
+      # 10.26.2 packageManager field is not yet visible (see caveat above).
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.12.0
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build all packages
+        run: pnpm -r build
+
+      - name: Create Release PR or publish
+        uses: changesets/action@v1
+        with:
+          publish: pnpm run release:publish
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # No NPM_TOKEN: auth is via OIDC trusted publishing (id-token: write).
+          NPM_CONFIG_PROVENANCE: true
