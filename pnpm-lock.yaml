@@ -16,9 +16,6 @@ importers:
       '@u-b/tides-core':
         specifier: workspace:^
         version: link:../../packages/core
-      astronomy-engine:
-        specifier: ^2.1.19
-        version: 2.1.19
       react:
         specifier: ^19.2.3
         version: 19.2.3
