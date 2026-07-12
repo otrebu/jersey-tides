@@ -13,9 +13,9 @@ importers:
       '@tanstack/react-router':
         specifier: ^1.144.0
         version: 1.144.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
-      '@u-b/tides-core':
+      '@u-b/tides-react':
         specifier: workspace:^
-        version: link:../../packages/core
+        version: link:../../packages/react
       react:
         specifier: ^19.2.3
         version: 19.2.3
