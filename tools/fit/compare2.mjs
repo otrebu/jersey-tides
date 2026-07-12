@@ -1,8 +1,8 @@
 // Compare a constituent set (or the app constants) against official tide events,
 // reporting BOTH height and timing errors of extremes. Uses src/lib/engine.ts.
 // Usage: node scripts/compare2.mjs <events.json> [fit.json]
-import { createPredictor } from '../src/lib/engine.ts'
-import { ST_HELIER_CONSTITUENTS, DATUM } from '../src/lib/constants.ts'
+import { createPredictor } from '../../packages/core/src/engine.ts'
+import { ST_HELIER_CONSTITUENTS, DATUM } from '../../packages/core/src/stations/st-helier.data.ts'
 import { readFileSync } from 'node:fs'
 
 const eventsPath = process.argv[2]

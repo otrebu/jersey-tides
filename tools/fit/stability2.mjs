@@ -1,7 +1,7 @@
 // Far-window stability between two fitted sets on the owned engine: max instantaneous
 // level divergence (10-min sampling) AND max extreme-time divergence, over a horizon.
 // Usage: node scripts/stability2.mjs <fitA.json> <fitB.json> <startISO> <days>
-import { createPredictor } from '../src/lib/engine.ts'
+import { createPredictor } from '../../packages/core/src/engine.ts'
 import { readFileSync } from 'node:fs'
 
 const [aPath, bPath, startISO, daysStr] = process.argv.slice(2)

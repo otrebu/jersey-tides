@@ -8,8 +8,8 @@
 // Curvature is estimated from a reference predictor and re-estimated by iterating.
 //
 // Usage: node scripts/fit2.mjs <events.json> <out.json> [--train=all] [--beta=1.5] [--iters=3]
-import { evalBasis, createPredictor, CATALOG } from '../src/lib/engine.ts'
-import { ST_HELIER_CONSTITUENTS, DATUM } from '../src/lib/constants.ts'
+import { evalBasis, createPredictor, CATALOG } from '../../packages/core/src/engine.ts'
+import { ST_HELIER_CONSTITUENTS, DATUM } from '../../packages/core/src/stations/st-helier.data.ts'
 import { readFileSync, writeFileSync } from 'node:fs'
 
 const args = process.argv.slice(2)
