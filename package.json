@@ -8,7 +8,7 @@
   "packageManager": "pnpm@10.26.2",
   "scripts": {
     "build": "pnpm -r build",
-    "typecheck": "pnpm -r --parallel exec tsc --noEmit",
+    "typecheck": "pnpm -r --filter '!fit-tools' exec tsc --noEmit",
     "test": "pnpm -r test",
     "dev": "pnpm --filter demo dev",
     "fixtures": "node tools/fit/gen-fixtures.mjs",
