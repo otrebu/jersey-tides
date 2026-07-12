@@ -17,6 +17,11 @@ const formatters = new Map<string, Intl.DateTimeFormat>()
  * east of Greenwich). This is the ONLY place the package touches Intl for
  * timezone math — swap this implementation (e.g. for a Scriptable DST table
  * fallback) and everything else follows.
+ *
+ * Gate 1 (2026-07-12): verified on-device in Scriptable (iOS JavaScriptCore)
+ * via targets/scriptable/probe/IntlProbe.js — 9/9 PASS across the 2026 and
+ * 2027 Europe/Jersey DST boundaries, including the h23 midnight case. Intl
+ * is safe on iOS; no closed-form UK-DST fallback needed.
  */
 export function tzOffsetMinutes(utc: Date, timeZone: string): number {
   let dtf = formatters.get(timeZone)

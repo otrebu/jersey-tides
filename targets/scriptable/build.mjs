@@ -22,7 +22,6 @@ await build({
   minify: false,
   charset: 'utf8',
   banner: { js: banner },
-  define: { BUILD_TIME: JSON.stringify(new Date().toISOString().slice(0, 16) + 'Z') },
   logLevel: 'info'
 })
 
