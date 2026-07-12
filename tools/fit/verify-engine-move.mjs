@@ -1,8 +1,13 @@
 // GATE: prove the harmonic engine survived the monorepo move byte-for-byte.
-// Extracts the PRE-move engine + constants from `main` (src/lib/*), imports them
-// alongside the moved core sources, builds a predictor from each, and asserts the
-// two agree to the bit on 5000 deterministic levels and on extremes over 60 spread
-// days. Data-independent: no official events, no Math.random, no Date.now.
+// Extracts the PRE-move engine + constants from the pinned pre-migration
+// baseline commit (main's tip before the monorepo, immutable by SHA), imports
+// them alongside the moved core sources, builds a predictor from each, and
+// asserts the two agree to the bit on 5000 deterministic levels and on
+// extremes over 60 spread days. Both sides run in the SAME process, so the
+// comparison is exact regardless of platform/V8 version. Data-independent:
+// no official events, no Math.random, no Date.now.
+//
+// Requires full git history (CI checks out with fetch-depth: 0).
 //
 // Usage: node tools/fit/verify-engine-move.mjs   (exit 0 = PASS, 1 = FAIL)
 import { execFileSync } from 'node:child_process'
@@ -14,16 +19,21 @@ import { pathToFileURL } from 'node:url'
 import { createPredictor as newPredictor } from '../../packages/core/src/engine.ts'
 import { ST_HELIER_CONSTITUENTS as NEW_CONSTITUENTS } from '../../packages/core/src/stations/st-helier.data.ts'
 
+// Last pre-monorepo commit ("Bring extreme timing under 5 minutes with
+// TICON-4 anchored refit") — the fitted engine this gate preserves.
+const BASELINE = '58fded99e04824dfe0f74c0eaf6ebffe94ad81c1'
+
 const repoRoot = join(import.meta.dirname, '..', '..')
-const showMain = (path) => execFileSync('git', ['show', `main:${path}`], { cwd: repoRoot, encoding: 'utf8' })
+const showBaseline = (path) =>
+  execFileSync('git', ['show', `${BASELINE}:${path}`], { cwd: repoRoot, encoding: 'utf8' })
 
 const dir = mkdtempSync(join(tmpdir(), 'engine-move-'))
 const engineMainPath = join(dir, 'engine-main.ts')
 const constantsMainPath = join(dir, 'constants-main.ts')
-// Both files are dependency-free leaves on main (engine imports nothing; constants
-// imports nothing), so they type-strip and import as-is.
-writeFileSync(engineMainPath, showMain('src/lib/engine.ts'))
-writeFileSync(constantsMainPath, showMain('src/lib/constants.ts'))
+// Both files are dependency-free leaves at the baseline (engine imports nothing;
+// constants imports nothing), so they type-strip and import as-is.
+writeFileSync(engineMainPath, showBaseline('src/lib/engine.ts'))
+writeFileSync(constantsMainPath, showBaseline('src/lib/constants.ts'))
 
 const { createPredictor: mainPredictor } = await import(pathToFileURL(engineMainPath).href)
 const { ST_HELIER_CONSTITUENTS: MAIN_CONSTITUENTS } = await import(pathToFileURL(constantsMainPath).href)

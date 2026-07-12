@@ -42,7 +42,11 @@ Jersey published tide tables. When you refit, follow this loop end to end:
 
 `packages/core` ships golden fixtures (`packages/core/fixtures/`) generated
 deterministically by `pnpm fixtures` (seeded, no `Date.now`). A test asserts the
-engine still reproduces them byte-for-byte.
+engine still reproduces them to 1e-9 m / 1 s — tolerances, not bit-equality,
+because `Math.sin`/`cos` vary by ~1 ULP across V8 versions and architectures
+(fixtures come from the dev machine; CI replays on a different Node/arch).
+Byte-identity for pure refactors is enforced separately, in-process, by
+`node tools/fit/verify-engine-move.mjs`.
 
 **This means CI fails after any predictions-changing edit until you regenerate
 and commit the fixtures.** That is intentional — it forces every constant/engine

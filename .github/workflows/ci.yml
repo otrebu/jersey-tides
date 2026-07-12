@@ -9,7 +9,11 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      # Full history: the engine-move identity gate reads the pre-migration
+      # baseline commit via `git show <sha>:...`.
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       # No version input: pnpm/action-setup reads the `packageManager` field
       # (pnpm@10.26.2) so CI matches local dev exactly.
