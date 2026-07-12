@@ -1,0 +1,19 @@
+{
+  "name": "scriptable",
+  "version": "0.0.0",
+  "description": "Jersey Tides Scriptable widget - bundles @u-b/tides-core into a single-file iOS Scriptable script",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@u-b/tides-core": "workspace:^"
+  },
+  "devDependencies": {
+    "@types/scriptable-ios": "^1.7.9",
+    "esbuild": "^0.25.0",
+    "typescript": "^5.9.3"
+  }
+}
