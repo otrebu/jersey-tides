@@ -1,16 +1,13 @@
 import WidgetKit
 
-/// Timeline providers (design doc §9). Stub behavior: one entry at the current
-/// instant, refresh in 30 min.
+/// Timeline providers (design doc §9). One reload per day: the full entry plan
+/// comes from `EntryPlanner.makeTimeline` — :00/:30 local grid + exact extreme
+/// and sun instants + 6-entry hourly slack tail past next midnight, deduped
+/// within 90 s, window-midpoint display instants, `.after(next local midnight
+/// + 60 s)`; error path → single §10 tile entry, `.after(now + 15 min)`.
 ///
-/// // CHUNK D FILLS THIS — EntryPlanner grid (:00/:30) + exact extreme + sun
-/// instants + 6-entry slack tail, window-midpoint display instants,
-/// `.after(next local midnight + 60 s)`, error path → single entry `+15 min`.
-private func stubTimeline(config: TideWidgetConfig) -> Timeline<TideEntry> {
-    let now = EngineProvider.clock.now
-    let entry = TideEntry.make(at: now, config: config)
-    return Timeline(entries: [entry], policy: .after(now.addingTimeInterval(30 * 60)))
-}
+/// Placeholder/snapshot contexts return a single sane entry fast (no full-day
+/// plan) — the widget gallery must never wait on ~60 model assemblies.
 
 struct DialTimelineProvider: AppIntentTimelineProvider {
     func placeholder(in context: Context) -> TideEntry {
@@ -22,7 +19,7 @@ struct DialTimelineProvider: AppIntentTimelineProvider {
     }
 
     func timeline(for configuration: DialConfigIntent, in context: Context) async -> Timeline<TideEntry> {
-        stubTimeline(config: configuration.widgetConfig) // CHUNK D FILLS THIS
+        EntryPlanner.makeTimeline(now: EngineProvider.clock.now, config: configuration.widgetConfig)
     }
 }
 
@@ -36,7 +33,7 @@ struct ChartTimelineProvider: AppIntentTimelineProvider {
     }
 
     func timeline(for configuration: ChartConfigIntent, in context: Context) async -> Timeline<TideEntry> {
-        stubTimeline(config: configuration.widgetConfig) // CHUNK D FILLS THIS
+        EntryPlanner.makeTimeline(now: EngineProvider.clock.now, config: configuration.widgetConfig)
     }
 }
 
@@ -50,7 +47,7 @@ struct RectTimelineProvider: AppIntentTimelineProvider {
     }
 
     func timeline(for configuration: RectConfigIntent, in context: Context) async -> Timeline<TideEntry> {
-        stubTimeline(config: configuration.widgetConfig) // CHUNK D FILLS THIS
+        EntryPlanner.makeTimeline(now: EngineProvider.clock.now, config: configuration.widgetConfig)
     }
 }
 
@@ -65,6 +62,6 @@ struct GlanceTimelineProvider: TimelineProvider {
     }
 
     func getTimeline(in context: Context, completion: @escaping @Sendable (Timeline<TideEntry>) -> Void) {
-        completion(stubTimeline(config: .default)) // CHUNK D FILLS THIS
+        completion(EntryPlanner.makeTimeline(now: EngineProvider.clock.now, config: .default))
     }
 }
