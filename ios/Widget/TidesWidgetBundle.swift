@@ -2,9 +2,9 @@ import SwiftUI
 import WidgetKit
 
 /// The four widgets (design doc §6). Kind strings are stable identifiers —
-/// never rename them once shipped.
-///
-/// // CHUNK D FILLS THIS — final display names/descriptions.
+/// never rename them once shipped. Each family view applies
+/// `containerBackground(Color.sky)` (accessories: `AccessoryWidgetBackground`)
+/// and `.widgetURL(jerseytides://day/…)` itself.
 @main
 struct TidesWidgetBundle: WidgetBundle {
     var body: some Widget {
@@ -26,7 +26,7 @@ struct DialWidget: Widget {
             DialSmallView(entry: entry)
         }
         .configurationDisplayName("Dial")
-        .description("Next tide at St Helier.")
+        .description("Next tide — or the level right now — at St Helier.")
         .supportedFamilies([.systemSmall])
     }
 }
@@ -42,7 +42,7 @@ struct ChartWidget: Widget {
             ChartWidgetEntryView(entry: entry)
         }
         .configurationDisplayName("Chart")
-        .description("The day's tide curve at St Helier.")
+        .description("The day's tide curve and extremes at St Helier.")
         .supportedFamilies([.systemMedium, .systemLarge])
     }
 }
@@ -73,7 +73,7 @@ struct RectWidget: Widget {
             RectAccessoryView(entry: entry)
         }
         .configurationDisplayName("Rectangular")
-        .description("Tide at a glance on the Lock Screen.")
+        .description("Tide level and next extremes on the Lock Screen.")
         .supportedFamilies([.accessoryRectangular])
     }
 }
@@ -87,7 +87,7 @@ struct GlanceWidget: Widget {
             GlanceView(entry: entry)
         }
         .configurationDisplayName("Glance")
-        .description("Current tide at St Helier.")
+        .description("Current tide level at St Helier.")
         .supportedFamilies([.accessoryCircular, .accessoryInline])
     }
 }

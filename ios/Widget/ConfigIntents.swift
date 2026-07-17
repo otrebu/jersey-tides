@@ -3,8 +3,6 @@ import Foundation
 
 /// Per-widget options as AppIntent parameters (design doc §7 #5–#8 — no App
 /// Group exists, so widget options can never come from UserDefaults).
-///
-/// // CHUNK D FILLS THIS — final copy; shapes are pinned.
 
 extension HeightUnit: AppEnum {
     static var typeDisplayRepresentation: TypeDisplayRepresentation { "Units" }
@@ -55,7 +53,7 @@ struct ChartConfigIntent: WidgetConfigurationIntent {
     var units: HeightUnit
 
     /// Metres, 0.5–12.0; nil = Off.
-    @Parameter(title: "Marked height (m)")
+    @Parameter(title: "Marked height (m)", inclusiveRange: (0.5, 12.0))
     var markedHeight: Double?
 
     @Parameter(title: "Marked height name")
@@ -64,7 +62,8 @@ struct ChartConfigIntent: WidgetConfigurationIntent {
     var widgetConfig: TideWidgetConfig {
         var config = TideWidgetConfig.default
         config.units = units
-        config.markedHeight = markedHeight
+        // Clamp defensively — the intent range should already enforce this.
+        config.markedHeight = markedHeight.map { min(max($0, 0.5), 12.0) }
         config.markedLabel = markedLabel
         return config
     }
