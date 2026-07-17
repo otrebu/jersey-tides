@@ -48,6 +48,11 @@ enum TideFormatters {
         case .twentyFourHour:
             style = style.hour(.twoDigits(amPM: .omitted)).minute(.twoDigits)
         case .twelveHour:
+            // Force a 12-hour cycle even when the device locale is 24-hour —
+            // `defaultDigits(amPM:)` alone follows the locale's hour cycle.
+            var components = Locale.Components(locale: .current)
+            components.hourCycle = .oneToTwelve
+            style.locale = Locale(components: components)
             style = style.hour(.defaultDigits(amPM: .abbreviated)).minute(.twoDigits)
         }
         return instant.formatted(style)
