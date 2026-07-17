@@ -2,9 +2,11 @@ import SwiftUI
 import WidgetKit
 
 /// Accessory family views (design doc §6): rectangular Text/Curve, circular
-/// Gauge (+ fallback band), inline. Vibrant hierarchy is pure opacity tiers.
-///
-/// // CHUNK F FILLS THIS — placeholder layouts.
+/// Gauge (+ fallback band), inline. `AccessoryWidgetBackground()` on; vibrant
+/// hierarchy is pure opacity tiers via `.primary`/`.secondary` — no custom
+/// colors pushed against the material (§2.1).
+
+// MARK: - accessoryRectangular
 
 /// accessoryRectangular — honors `config.rectStyle` (Text default / Curve).
 struct RectAccessoryView: View {
@@ -12,24 +14,15 @@ struct RectAccessoryView: View {
 
     var body: some View {
         Group {
-            if let model = entry.dayModel,
-               let height = model.currentHeight,
-               let rising = model.isRising {
-                VStack(alignment: .leading, spacing: 1) {
-                    Text("\(TideFormatters.height(height, unit: entry.config.units)) \(rising ? "▲" : "▼")")
-                        .font(.title3.weight(.semibold))
-                        .monospacedDigit()
-                    if let next = model.nextExtreme {
-                        Text("\(next.isHigh ? "HW" : "LW") \(TideFormatters.time(next.time)) · \(TideFormatters.height(next.height, unit: entry.config.units))")
-                            .font(.caption2)
-                    }
-                    if let following = model.followingExtreme {
-                        Text("\(following.isHigh ? "HW" : "LW") \(TideFormatters.time(following.time)) · \(TideFormatters.height(following.height, unit: entry.config.units))")
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                    }
+            if let model = entry.dayModel {
+                switch entry.config.rectStyle {
+                case .text:
+                    RectTextContent(model: model, units: entry.config.units)
+                case .curve:
+                    RectCurveContent(
+                        model: model, now: entry.displayInstant, units: entry.config.units
+                    )
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
             } else {
                 ErrorTileView(family: .accessoryRectangular)
             }
@@ -39,24 +32,106 @@ struct RectAccessoryView: View {
     }
 }
 
-/// accessoryCircular — real Gauge over the day's LW…HW band; ±1 m fallback.
+/// Text style (§6): `8.4 m ▲` title3 semibold · next extreme caption2 primary ·
+/// following extreme caption2 secondary (true material dimming).
+private struct RectTextContent: View {
+    let model: TideDayModel
+    let units: HeightUnit
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 1) {
+            heroLine
+            if let next = model.nextExtreme {
+                Text(Self.extremeText(next, units: units))
+                    .font(.caption2)
+                    .monospacedDigit()
+            }
+            if let following = model.followingExtreme {
+                Text(Self.extremeText(following, units: units))
+                    .font(.caption2)
+                    .monospacedDigit()
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(WidgetVoice.summary(model, units: units))
+    }
+
+    @ViewBuilder
+    private var heroLine: some View {
+        if let height = model.currentHeight {
+            heroText(height: height)
+                .font(.title3.weight(.semibold))
+                .monospacedDigit()
+        }
+    }
+
+    /// `8.4 m ▲` — arrow is an SF symbol, never a text glyph (§3).
+    private func heroText(height: Double) -> Text {
+        var text = Text(TideFormatters.height(height, unit: units))
+        if let rising = model.isRising {
+            text = text + Text(verbatim: " ")
+                + Text(Image(systemName: WidgetVoice.arrowSymbol(rising: rising)))
+                    .font(.system(size: 12, weight: .semibold))
+        }
+        return text
+    }
+
+    static func extremeText(_ extreme: TideExtreme, units: HeightUnit) -> String {
+        "\(extreme.isHigh ? "HW" : "LW") \(TideFormatters.time(extreme.time))"
+            + " · \(TideFormatters.height(extreme.height, unit: units))"
+    }
+}
+
+/// Curve style (§4.4, §6): rolling `now−1h…now+5h` sparkline (37 `levelAt`
+/// samples every 10 min) behind a single `HW 14:32 · 11.2 m` caption line.
+private struct RectCurveContent: View {
+    let model: TideDayModel
+    let now: Date
+    let units: HeightUnit
+
+    var body: some View {
+        let window = rollingWindow
+        ZStack(alignment: .topLeading) {
+            Sparkline(samples: window.samples, bounds: window.bounds, variant: .rolling(now: now))
+            if let next = model.nextExtreme {
+                Text(RectTextContent.extremeText(next, units: units))
+                    .font(.caption2)
+                    .monospacedDigit()
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(WidgetVoice.summary(model, units: units))
+    }
+
+    private var rollingWindow: (samples: [TimelinePoint], bounds: DayBounds) {
+        let start = now.addingTimeInterval(-3600)
+        let bounds = DayBounds(start: start, end: now.addingTimeInterval(5 * 3600))
+        let engine = EngineProvider.engine
+        let samples = (0...36).map { index -> TimelinePoint in
+            let time = start.addingTimeInterval(Double(index) * 600)
+            return TimelinePoint(time: time, height: engine.levelAt(time))
+        }
+        return (samples, bounds)
+    }
+}
+
+// MARK: - accessoryCircular
+
+/// accessoryCircular — real `Gauge` over the day's LW…HW band with caption2
+/// min/max labels; fallback ±1 m band around the current height, divisor
+/// floored at 0.1 (§6).
 struct CircularAccessoryView: View {
     let entry: TideEntry
+
+    private var units: HeightUnit { entry.config.units }
 
     var body: some View {
         Group {
             if let model = entry.dayModel, let height = model.currentHeight {
-                let heights = model.extremes.map(\.height)
-                let lower = min(heights.min() ?? (height - 1), height)
-                let upper = max(heights.max() ?? (height + 1), lower + 0.1)
-                Gauge(value: height, in: lower...upper) {
-                    Image(systemName: (model.isRising ?? true) ? "arrow.up" : "arrow.down")
-                } currentValueLabel: {
-                    Text(TideFormatters.heightValue(height, unit: entry.config.units))
-                        .fontWeight(.medium)
-                        .monospacedDigit()
-                }
-                .gaugeStyle(.accessoryCircular)
+                gauge(model: model, height: height)
             } else {
                 ErrorTileView(family: .accessoryCircular)
             }
@@ -64,25 +139,66 @@ struct CircularAccessoryView: View {
         .containerBackground(for: .widget) { AccessoryWidgetBackground() }
         .widgetURL(entry.dayModel?.day.deepLinkURL)
     }
+
+    private func gauge(model: TideDayModel, height: Double) -> some View {
+        let band = gaugeBand(height: height, heights: model.extremes.map(\.height))
+        let rising = model.isRising ?? true
+        return Gauge(value: min(max(height, band.low), band.high), in: band.low...band.high) {
+            Image(systemName: rising ? "arrow.up" : "arrow.down")
+        } currentValueLabel: {
+            Text(TideFormatters.heightValue(height, unit: units))
+                .fontWeight(.medium)
+                .monospacedDigit()
+        } minimumValueLabel: {
+            Text(TideFormatters.heightValue(band.low, unit: units))
+                .font(.caption2)
+                .minimumScaleFactor(0.6)
+        } maximumValueLabel: {
+            Text(TideFormatters.heightValue(band.high, unit: units))
+                .font(.caption2)
+                .minimumScaleFactor(0.6)
+        }
+        .gaugeStyle(.accessoryCircular)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(WidgetVoice.spokenTrend(height, rising: rising, unit: units))
+    }
+
+    /// Day LW…HW band; when day extremes are unavailable, ±1 m around the
+    /// current height. Divisor (band width) floored at 0.1 — same rule as the
+    /// Scriptable widget.
+    private func gaugeBand(height: Double, heights: [Double]) -> (low: Double, high: Double) {
+        let low = heights.min() ?? (height - 1)
+        var high = heights.max() ?? (height + 1)
+        if high - low < 0.1 { high = low + 0.1 }
+        return (low, high)
+    }
 }
 
-/// accessoryInline — arrow symbol + `HW 14:32 · 11.2 m`; bare level fallback.
+// MARK: - accessoryInline
+
+/// accessoryInline — arrow symbol + `HW 14:32 · 11.2 m`; with no extreme in
+/// horizon, arrow + bare level (§6).
 struct InlineAccessoryView: View {
     let entry: TideEntry
+
+    private var units: HeightUnit { entry.config.units }
 
     var body: some View {
         Group {
             if let model = entry.dayModel {
-                let arrow = (model.isRising ?? true) ? "arrowtriangle.up.fill" : "arrowtriangle.down.fill"
+                let arrow = WidgetVoice.arrowSymbol(rising: model.isRising ?? true)
                 if let next = model.nextExtreme {
-                    Label(
-                        "\(next.isHigh ? "HW" : "LW") \(TideFormatters.time(next.time)) · \(TideFormatters.height(next.height, unit: entry.config.units))",
-                        systemImage: arrow
-                    )
-                    .monospacedDigit()
-                } else if let height = model.currentHeight {
-                    Label(TideFormatters.height(height, unit: entry.config.units), systemImage: arrow)
+                    Label(RectTextContent.extremeText(next, units: units), systemImage: arrow)
                         .monospacedDigit()
+                        .accessibilityLabel(WidgetVoice.summary(model, units: units))
+                } else if let height = model.currentHeight {
+                    Label(TideFormatters.height(height, unit: units), systemImage: arrow)
+                        .monospacedDigit()
+                        .accessibilityLabel(
+                            WidgetVoice.spokenTrend(
+                                height, rising: model.isRising ?? true, unit: units
+                            )
+                        )
                 }
             } else {
                 ErrorTileView(family: .accessoryInline)
@@ -91,6 +207,8 @@ struct InlineAccessoryView: View {
         .widgetURL(entry.dayModel?.day.deepLinkURL)
     }
 }
+
+// MARK: - Glance dispatcher
 
 /// Dispatcher for the Glance widget (circular + inline share one static config).
 struct GlanceView: View {
