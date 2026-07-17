@@ -36,11 +36,11 @@ struct TideClock: Sendable {
 
 /// The single composition point for the engine + clock (the swap point).
 enum EngineProvider {
-    /// The engine every surface uses.
-    ///
-    /// CHUNK I SWAPS THIS: replace `SyntheticEngine()` with the
-    /// TidesCore-backed engine once the port passes fixture parity.
-    static let engine: any TideEngine = SyntheticEngine()
+    /// The engine every surface uses: the TidesCore-backed adapter (fixture
+    /// parity vs `packages/core/fixtures`, gate: `cd ios/TidesCore && swift
+    /// test`). `SyntheticEngine` remains available for deterministic unit
+    /// tests (`Tests/` instantiate it directly).
+    static let engine: any TideEngine = TidesCoreEngine()
 
     /// Process-wide clock; frozen when launched with `-frozen-now`.
     static let clock: TideClock = .resolved()

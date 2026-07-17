@@ -1,4 +1,4 @@
-# Native iOS target (phase 3 — in progress)
+# Native iOS target (phase 3)
 
 A SwiftPM `TidesCore` package (Swift port of `packages/core/src/engine.ts`) +
 SwiftUI app + WidgetKit extension. Lives at the repo root because a Swift
@@ -10,12 +10,13 @@ package is not a pnpm workspace member.
   `xcodegen generate`; the `.xcodeproj` is gitignored — never hand-edit the
   `.pbxproj`. `ios/.derived/` (the `-derivedDataPath`) is gitignored too.
 - `TidesCore/` — SwiftPM engine package (fixture-parity port, own gate:
-  `swift test`). **Not yet linked into the app**: `project.yml` deliberately
-  omits the package while the port lands in parallel; the integrator adds the
-  `packages:` block + target dependencies. Until then the app runs entirely on
-  the deterministic `SyntheticEngine` behind the `TideEngine` protocol facade
-  (`Shared/Engine/`); the swap point is `EngineProvider.engine`. Nothing
-  outside `TidesCore/` may import TidesCore.
+  `swift test`). Linked into BOTH targets via the `packages:` block in
+  `project.yml`. The app and widgets run on `TidesCoreEngine`
+  (`Shared/Engine/TidesCoreEngine.swift`), the adapter behind the
+  `TideEngine` protocol facade (`Shared/Engine/`); the composition point is
+  `EngineProvider.engine`. Only the adapter may import TidesCore — all other
+  UI code goes through the facade. The deterministic `SyntheticEngine` is
+  kept for unit tests (`Tests/` instantiate it directly).
 - `Shared/` — compiled into BOTH the app and widget targets (no framework):
   engine facade, theme tokens/typography, day-model assembly, curve renderer.
 - `App/`, `Widget/` — app screens and WidgetKit extension (bundle id
@@ -63,8 +64,14 @@ xcrun simctl io booted screenshot /tmp/shot.png
 - `-harness app|widgets|curve` — boot surface: the app (default), the widget
   gallery (`App/Debug/DebugWidgetGallery.swift`, every family at fixed frame),
   or the curve harness (every `CurveStyle` preset + ghost sparkline).
-- `-harness-day <ISO>`, `-harness-mode standard|accented|vibrant` — gallery
-  selectors (chunk F).
+- App surface: `-harness-page <offset>` pre-pages the Today pager (e.g. `1` =
+  tomorrow, clamped ±14); `-harness-sheet fortnight|settings` opens a sheet
+  on launch.
+- Widget gallery: `-harness-page 1|2|3|4|5` — one screen-sized section per
+  launch (1 dials+medium, 2 large charts, 3 accessories, 4 system error
+  tiles, 5 accessory error tiles + manual-gate note); `-harness-day <ISO>`;
+  `-harness-mode standard|accented|vibrant` (env override only — real tint
+  compositing is the manual gate on page 5).
 
 ## Engine port contract (TidesCore)
 

@@ -13,8 +13,9 @@ import WidgetKit
 ///   flipping every mode-dependent code path. The system compositor's actual
 ///   tinting/vibrancy is NOT simulated — final visual sign-off for accented /
 ///   vibrant is the manual gate in the footer row.
-/// - `-harness-page 1|2|3|4` — one section per launch (screenshot paging);
-///   omit to stack all sections in one scroll.
+/// - `-harness-page 1|2|3|4|5` — one section per launch (screenshot paging;
+///   each page fits a single iPhone screen); omit to stack all sections in
+///   one scroll.
 struct DebugWidgetGallery: View {
     private let now: Date
     private let entry: TideEntry
@@ -76,8 +77,9 @@ struct DebugWidgetGallery: View {
                 if showsPage(1) { systemSmallRows }
                 if showsPage(2) { chartRows }
                 if showsPage(3) { accessoryRows }
-                if showsPage(4) {
-                    errorRows
+                if showsPage(4) { errorSystemRows }
+                if showsPage(5) {
+                    errorAccessoryRows
                     footerNote
                 }
             }
@@ -134,7 +136,7 @@ struct DebugWidgetGallery: View {
     }
 
     @ViewBuilder
-    private var errorRows: some View {
+    private var errorSystemRows: some View {
         galleryRow("error tile — systemSmall") {
             systemTile(DialSmallView(entry: errorEntry), width: 170, height: 170)
         }
@@ -144,6 +146,10 @@ struct DebugWidgetGallery: View {
         galleryRow("error tile — accessoryRectangular") {
             accessoryTile(RectAccessoryView(entry: errorEntry), width: 160, height: 72)
         }
+    }
+
+    @ViewBuilder
+    private var errorAccessoryRows: some View {
         galleryRow("error tile — accessoryCircular") {
             accessoryTile(CircularAccessoryView(entry: errorEntry), width: 76, height: 76)
         }

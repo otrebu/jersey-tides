@@ -191,8 +191,12 @@ struct DayPage: View {
     private var curve: some View {
         TideCurveView(model: model, style: curveStyle)
             .frame(height: 200)
-            .padding(.horizontal, -margin) // full-bleed to the screen edges
+            // Reveal mask BEFORE the negative padding: applied after, the
+            // mask's GeometryReader sizes to the padded (354 pt) frame and
+            // permanently clips the 24 pt full-bleed overhang — cutting the
+            // curve stroke and any extreme label near the screen edges.
             .modifier(CurveIntroReveal(progress: curveProgress, crossfade: reduceMotion))
+            .padding(.horizontal, -margin) // full-bleed to the screen edges
             .animation(.easeInOut(duration: 0.18), value: model.day) // §11 crossfade
     }
 
