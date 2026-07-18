@@ -25,7 +25,7 @@ enum RectStyle: String, Codable, CaseIterable, Sendable {
 struct TideWidgetConfig: Equatable, Sendable {
     var units: HeightUnit = .metres
     var emphasis: DialEmphasis = .nextTide
-    var rectStyle: RectStyle = .text
+    var rectStyle: RectStyle = .curve
     /// Metres, 0.5–12.0; nil = Off.
     var markedHeight: Double?
     var markedLabel: String?

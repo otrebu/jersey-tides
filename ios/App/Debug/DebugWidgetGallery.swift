@@ -174,6 +174,16 @@ struct DebugWidgetGallery: View {
             prevTime: now.addingTimeInterval(-215 * 60),
             prevHeight: 1.3
         )
+        let mockAttributes = TideWatchAttributes(
+            stationName: "St Helier · Jersey",
+            curveHeights: (0...48).map { 0.5 + 0.45 * sin(Double($0) / 48 * 4 * .pi - 1.2) },
+            curveMarks: [
+                .init(fraction: 0.16, level: 0.05, isHigh: false),
+                .init(fraction: 0.40, level: 0.95, isHigh: true),
+                .init(fraction: 0.66, level: 0.05, isHigh: false),
+                .init(fraction: 0.90, level: 0.95, isHigh: true),
+            ]
+        )
         galleryRow("live activity — lock screen") {
             TideWatchLockView(stationName: "St Helier · Jersey", state: state)
                 .background(Color.sky, in: RoundedRectangle(cornerRadius: 24))
@@ -186,7 +196,7 @@ struct DebugWidgetGallery: View {
                     Spacer()
                     TideWatchIslandTrailing(state: state)
                 }
-                TideWatchIslandBottom(state: state)
+                TideWatchIslandBottom(attributes: mockAttributes, state: state)
                     .padding(.top, 8)
             }
             .padding(20)

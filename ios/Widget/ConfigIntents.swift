@@ -74,7 +74,7 @@ struct RectConfigIntent: WidgetConfigurationIntent {
     static var title: LocalizedStringResource { "Rectangular" }
     static var description: IntentDescription { IntentDescription("Rectangular tide options.") }
 
-    @Parameter(title: "Style", default: .text)
+    @Parameter(title: "Style", default: .curve)
     var style: RectStyle
 
     var widgetConfig: TideWidgetConfig {

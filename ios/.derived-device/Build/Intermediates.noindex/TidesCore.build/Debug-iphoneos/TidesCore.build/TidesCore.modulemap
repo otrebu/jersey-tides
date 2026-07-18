@@ -1,0 +1,4 @@
+module TidesCore {
+header "TidesCore-Swift.h"
+export *
+}

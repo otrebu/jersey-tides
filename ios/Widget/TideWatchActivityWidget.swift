@@ -20,7 +20,7 @@ struct TideWatchActivityWidget: Widget {
                     TideWatchIslandTrailing(state: context.state)
                 }
                 DynamicIslandExpandedRegion(.bottom) {
-                    TideWatchIslandBottom(state: context.state)
+                    TideWatchIslandBottom(attributes: context.attributes, state: context.state)
                         .padding(.top, 4)
                 }
             } compactLeading: {

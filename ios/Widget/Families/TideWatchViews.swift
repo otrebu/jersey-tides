@@ -104,13 +104,74 @@ struct TideWatchIslandTrailing: View {
 }
 
 struct TideWatchIslandBottom: View {
+    let attributes: TideWatchAttributes
     let state: TideWatchAttributes.ContentState
 
     var body: some View {
-        ProgressView(timerInterval: state.interval, countsDown: false) {
-        } currentValueLabel: {
+        VStack(spacing: 6) {
+            TideWatchIslandCurve(attributes: attributes)
+                .frame(height: 44)
+            ProgressView(timerInterval: state.interval, countsDown: false) {
+            } currentValueLabel: {
+            }
+            .progressViewStyle(.linear)
+            .tint(.white)
         }
-        .progressViewStyle(.linear)
-        .tint(.white)
+    }
+}
+
+/// The day sinus on the island's black glass: white stroke over a faint fill,
+/// HW filled dot / LW open ring per the print legend (§4.3.5). Drawn from the
+/// normalized snapshot in the attributes — static by design; the progress bar
+/// below is the live element.
+struct TideWatchIslandCurve: View {
+    let attributes: TideWatchAttributes
+
+    var body: some View {
+        Canvas { context, size in
+            let heights = attributes.curveHeights
+            guard heights.count > 1 else { return }
+            let inset: CGFloat = 4
+            let band = size.height - inset * 2
+            func point(_ index: Int) -> CGPoint {
+                CGPoint(
+                    x: CGFloat(index) / CGFloat(heights.count - 1) * size.width,
+                    y: inset + (1 - CGFloat(heights[index])) * band
+                )
+            }
+            let points = heights.indices.map(point(_:))
+
+            var fill = Path()
+            fill.move(to: CGPoint(x: 0, y: size.height))
+            fill.addLines(points)
+            fill.addLine(to: CGPoint(x: size.width, y: size.height))
+            fill.closeSubpath()
+            context.fill(fill, with: .color(.white.opacity(0.15)))
+
+            var stroke = Path()
+            stroke.addLines(points)
+            context.stroke(
+                stroke, with: .color(.white),
+                style: StrokeStyle(lineWidth: 1.5, lineCap: .round, lineJoin: .round)
+            )
+
+            for mark in attributes.curveMarks {
+                let center = CGPoint(
+                    x: CGFloat(mark.fraction) * size.width,
+                    y: inset + (1 - CGFloat(mark.level)) * band
+                )
+                if mark.isHigh {
+                    let dot = Path(ellipseIn: CGRect(
+                        x: center.x - 2.5, y: center.y - 2.5, width: 5, height: 5
+                    ))
+                    context.fill(dot, with: .color(.white))
+                } else {
+                    let ring = Path(ellipseIn: CGRect(
+                        x: center.x - 3, y: center.y - 3, width: 6, height: 6
+                    ))
+                    context.stroke(ring, with: .color(.white), lineWidth: 1.25)
+                }
+            }
+        }
     }
 }

@@ -25,10 +25,36 @@ final class TideWatchController: ObservableObject {
         guard ActivityAuthorizationInfo().areActivitiesEnabled,
               let state = Self.runState(engine: engine, now: now) else { return }
         activity = try? Activity.request(
-            attributes: TideWatchAttributes(stationName: "St Helier · Jersey"),
+            attributes: Self.attributes(engine: engine, now: now),
             content: .init(state: state, staleDate: state.nextTime.addingTimeInterval(15 * 60))
         )
         isWatching = activity != nil
+    }
+
+    /// Attributes carry the day-curve snapshot for the expanded island:
+    /// normalized 30-min heights + extreme marks across the local day.
+    private static func attributes(
+        engine: any TideEngine, now: Date
+    ) -> TideWatchAttributes {
+        let day = TideTime.calendarDay(of: now)
+        let bounds = TideTime.dayBounds(day)
+        let samples = engine.timeline(day, samplesPerHour: 2)
+        let extremes = engine.dayExtremes(day)
+        let heights = samples.map(\.height) + extremes.map(\.height)
+        let lo = heights.min() ?? 0
+        let hi = heights.max() ?? 1
+        let span = max(hi - lo, 0.1)
+        return TideWatchAttributes(
+            stationName: "St Helier · Jersey",
+            curveHeights: samples.map { ($0.height - lo) / span },
+            curveMarks: extremes.map {
+                TideWatchAttributes.CurveMark(
+                    fraction: $0.time.timeIntervalSince(bounds.start) / bounds.duration,
+                    level: ($0.height - lo) / span,
+                    isHigh: $0.isHigh
+                )
+            }
+        )
     }
 
     func stop() {
@@ -45,19 +71,13 @@ final class TideWatchController: ObservableObject {
         }
     }
 
-    /// On foreground: if the watched extreme has passed, move the activity to
-    /// the next run (the new prev is the extreme just passed).
+    /// On foreground: if the watched extreme has passed, restart the activity
+    /// on the current run. Restart (not update) so the attributes' day-curve
+    /// snapshot is rebuilt — it can never go stale across a midnight rollover.
     func rollForwardIfNeeded(engine: any TideEngine, now: Date) {
-        guard let activity, activity.content.state.nextTime <= now,
-              let state = Self.runState(engine: engine, now: now) else { return }
-        let id = activity.id
-        Task {
-            for live in Activity<TideWatchAttributes>.activities where live.id == id {
-                await live.update(
-                    .init(state: state, staleDate: state.nextTime.addingTimeInterval(15 * 60))
-                )
-            }
-        }
+        guard let activity, activity.content.state.nextTime <= now else { return }
+        stop()
+        start(engine: engine, now: now)
     }
 
     /// The current flood/ebb run: previous extreme → next extreme around `now`.

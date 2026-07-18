@@ -1,0 +1,9 @@
+Target dependency graph (4 targets)
+Target 'JerseyTides' in project 'JerseyTides'
+➜ Explicit dependency on target 'JerseyTidesWidget' in project 'JerseyTides'
+➜ Explicit dependency on target 'TidesCore' in project 'TidesCore'
+Target 'JerseyTidesWidget' in project 'JerseyTides'
+➜ Explicit dependency on target 'TidesCore' in project 'TidesCore'
+Target 'TidesCore' in project 'TidesCore'
+➜ Explicit dependency on target 'TidesCore' in project 'TidesCore'
+Target 'TidesCore' in project 'TidesCore' (no dependencies)

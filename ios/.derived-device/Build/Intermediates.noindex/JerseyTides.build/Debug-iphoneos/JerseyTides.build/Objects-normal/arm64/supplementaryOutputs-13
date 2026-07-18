@@ -1,0 +1,30 @@
+{
+  "/Users/uby/dev/jersey-tides/ios/App/SettingsStore.swift" : {
+    "const-values" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/SettingsStore.swiftconstvalues",
+    "dependencies" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/SettingsStore.d",
+    "diagnostics" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/SettingsStore.dia",
+    "object" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/SettingsStore.o",
+    "swift-dependencies" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/SettingsStore.swiftdeps"
+  },
+  "/Users/uby/dev/jersey-tides/ios/Shared/Curve/Sparkline.swift" : {
+    "const-values" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/Sparkline.swiftconstvalues",
+    "dependencies" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/Sparkline.d",
+    "diagnostics" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/Sparkline.dia",
+    "object" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/Sparkline.o",
+    "swift-dependencies" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/Sparkline.swiftdeps"
+  },
+  "/Users/uby/dev/jersey-tides/ios/Shared/Curve/TideCurveView.swift" : {
+    "const-values" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/TideCurveView.swiftconstvalues",
+    "dependencies" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/TideCurveView.d",
+    "diagnostics" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/TideCurveView.dia",
+    "object" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/TideCurveView.o",
+    "swift-dependencies" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/TideCurveView.swiftdeps"
+  },
+  "/Users/uby/dev/jersey-tides/ios/Shared/Engine/SyntheticEngine.swift" : {
+    "const-values" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/SyntheticEngine.swiftconstvalues",
+    "dependencies" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/SyntheticEngine.d",
+    "diagnostics" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/SyntheticEngine.dia",
+    "object" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/SyntheticEngine.o",
+    "swift-dependencies" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/SyntheticEngine.swiftdeps"
+  }
+}

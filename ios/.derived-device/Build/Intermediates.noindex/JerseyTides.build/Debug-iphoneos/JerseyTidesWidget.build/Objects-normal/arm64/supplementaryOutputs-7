@@ -1,0 +1,23 @@
+{
+  "/Users/uby/dev/jersey-tides/ios/Shared/Engine/TidesCoreEngine.swift" : {
+    "const-values" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTidesWidget.build/Objects-normal/arm64/TidesCoreEngine.swiftconstvalues",
+    "dependencies" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTidesWidget.build/Objects-normal/arm64/TidesCoreEngine.d",
+    "diagnostics" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTidesWidget.build/Objects-normal/arm64/TidesCoreEngine.dia",
+    "object" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTidesWidget.build/Objects-normal/arm64/TidesCoreEngine.o",
+    "swift-dependencies" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTidesWidget.build/Objects-normal/arm64/TidesCoreEngine.swiftdeps"
+  },
+  "/Users/uby/dev/jersey-tides/ios/Shared/Model/TideWatchAttributes.swift" : {
+    "const-values" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTidesWidget.build/Objects-normal/arm64/TideWatchAttributes.swiftconstvalues",
+    "dependencies" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTidesWidget.build/Objects-normal/arm64/TideWatchAttributes.d",
+    "diagnostics" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTidesWidget.build/Objects-normal/arm64/TideWatchAttributes.dia",
+    "object" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTidesWidget.build/Objects-normal/arm64/TideWatchAttributes.o",
+    "swift-dependencies" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTidesWidget.build/Objects-normal/arm64/TideWatchAttributes.swiftdeps"
+  },
+  "/Users/uby/dev/jersey-tides/ios/Widget/Families/TideWatchViews.swift" : {
+    "const-values" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTidesWidget.build/Objects-normal/arm64/TideWatchViews.swiftconstvalues",
+    "dependencies" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTidesWidget.build/Objects-normal/arm64/TideWatchViews.d",
+    "diagnostics" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTidesWidget.build/Objects-normal/arm64/TideWatchViews.dia",
+    "object" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTidesWidget.build/Objects-normal/arm64/TideWatchViews.o",
+    "swift-dependencies" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTidesWidget.build/Objects-normal/arm64/TideWatchViews.swiftdeps"
+  }
+}

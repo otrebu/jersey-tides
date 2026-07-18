@@ -1,0 +1,30 @@
+{
+  "/Users/uby/dev/jersey-tides/ios/App/Screens/ExtremesTable.swift" : {
+    "const-values" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/ExtremesTable.swiftconstvalues",
+    "dependencies" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/ExtremesTable.d",
+    "diagnostics" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/ExtremesTable.dia",
+    "object" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/ExtremesTable.o",
+    "swift-dependencies" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/ExtremesTable.swiftdeps"
+  },
+  "/Users/uby/dev/jersey-tides/ios/Shared/Engine/EngineProvider.swift" : {
+    "const-values" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/EngineProvider.swiftconstvalues",
+    "dependencies" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/EngineProvider.d",
+    "diagnostics" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/EngineProvider.dia",
+    "object" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/EngineProvider.o",
+    "swift-dependencies" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/EngineProvider.swiftdeps"
+  },
+  "/Users/uby/dev/jersey-tides/ios/Shared/Model/EntryPlanner.swift" : {
+    "const-values" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/EntryPlanner.swiftconstvalues",
+    "dependencies" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/EntryPlanner.d",
+    "diagnostics" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/EntryPlanner.dia",
+    "object" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/EntryPlanner.o",
+    "swift-dependencies" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/EntryPlanner.swiftdeps"
+  },
+  "/Users/uby/dev/jersey-tides/ios/Widget/ErrorTileView.swift" : {
+    "const-values" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/ErrorTileView.swiftconstvalues",
+    "dependencies" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/ErrorTileView.d",
+    "diagnostics" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/ErrorTileView.dia",
+    "object" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/ErrorTileView.o",
+    "swift-dependencies" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/ErrorTileView.swiftdeps"
+  }
+}

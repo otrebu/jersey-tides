@@ -1,0 +1,30 @@
+{
+  "/Users/uby/dev/jersey-tides/ios/App/JerseyTidesApp.swift" : {
+    "const-values" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/JerseyTidesApp.swiftconstvalues",
+    "dependencies" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/JerseyTidesApp.d",
+    "diagnostics" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/JerseyTidesApp.dia",
+    "object" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/JerseyTidesApp.o",
+    "swift-dependencies" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/JerseyTidesApp.swiftdeps"
+  },
+  "/Users/uby/dev/jersey-tides/ios/App/Screens/FortnightSheet.swift" : {
+    "const-values" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/FortnightSheet.swiftconstvalues",
+    "dependencies" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/FortnightSheet.d",
+    "diagnostics" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/FortnightSheet.dia",
+    "object" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/FortnightSheet.o",
+    "swift-dependencies" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/FortnightSheet.swiftdeps"
+  },
+  "/Users/uby/dev/jersey-tides/ios/App/Screens/SettingsSheet.swift" : {
+    "const-values" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/SettingsSheet.swiftconstvalues",
+    "dependencies" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/SettingsSheet.d",
+    "diagnostics" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/SettingsSheet.dia",
+    "object" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/SettingsSheet.o",
+    "swift-dependencies" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/SettingsSheet.swiftdeps"
+  },
+  "/Users/uby/dev/jersey-tides/ios/Shared/Model/Formatters.swift" : {
+    "const-values" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/Formatters.swiftconstvalues",
+    "dependencies" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/Formatters.d",
+    "diagnostics" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/Formatters.dia",
+    "object" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/Formatters.o",
+    "swift-dependencies" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/Formatters.swiftdeps"
+  }
+}

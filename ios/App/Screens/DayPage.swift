@@ -202,6 +202,11 @@ struct DayPage: View {
 
     private var curve: some View {
         TideCurveView(model: model, style: curveStyle)
+            .overlay(
+                TideScrubOverlay(
+                    model: model, style: curveStyle, units: units, timeFormat: timeFormat
+                )
+            )
             .frame(height: 200)
             // Reveal mask BEFORE the negative padding: applied after, the
             // mask's GeometryReader sizes to the padded (354 pt) frame and

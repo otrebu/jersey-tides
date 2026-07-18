@@ -17,7 +17,7 @@ packages:
 settings:
   base:
     SWIFT_VERSION: "6.0"
-    DEVELOPMENT_TEAM: XXXXXXXXXX # placeholder — fill from Xcode ▸ Settings ▸ Accounts
+    DEVELOPMENT_TEAM: BGG923HX2A
     CODE_SIGN_STYLE: Automatic
 targets:
   JerseyTides:

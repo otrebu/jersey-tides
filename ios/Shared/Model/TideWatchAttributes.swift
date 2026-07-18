@@ -19,6 +19,23 @@ struct TideWatchAttributes: ActivityAttributes {
         var interval: ClosedRange<Date> { prevTime...nextTime }
     }
 
+    /// An extreme on the day-curve snapshot, in normalized plot coordinates.
+    struct CurveMark: Codable, Hashable {
+        /// 0…1 across the local day.
+        var fraction: Double
+        /// 0…1 within the curve's height band.
+        var level: Double
+        var isHigh: Bool
+    }
+
     /// Station eyebrow, fixed for the activity's lifetime.
     var stationName: String
+
+    /// Day-curve snapshot for the expanded island: heights normalized 0…1
+    /// across the local day (49 points ≈ 30-min steps; a few hundred bytes,
+    /// well under the ActivityKit payload budget). Static per activity — the
+    /// controller restarts the activity rather than updating it across a day
+    /// boundary, so the snapshot never goes stale.
+    var curveHeights: [Double]
+    var curveMarks: [CurveMark]
 }

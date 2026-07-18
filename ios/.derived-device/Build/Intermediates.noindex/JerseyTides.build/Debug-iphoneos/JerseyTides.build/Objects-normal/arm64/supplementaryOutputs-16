@@ -1,0 +1,23 @@
+{
+  "/Users/uby/dev/jersey-tides/ios/App/Screens/TodayScreen.swift" : {
+    "const-values" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/TodayScreen.swiftconstvalues",
+    "dependencies" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/TodayScreen.d",
+    "diagnostics" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/TodayScreen.dia",
+    "object" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/TodayScreen.o",
+    "swift-dependencies" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/TodayScreen.swiftdeps"
+  },
+  "/Users/uby/dev/jersey-tides/ios/Shared/Theme/Tokens.swift" : {
+    "const-values" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/Tokens.swiftconstvalues",
+    "dependencies" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/Tokens.d",
+    "diagnostics" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/Tokens.dia",
+    "object" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/Tokens.o",
+    "swift-dependencies" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/Tokens.swiftdeps"
+  },
+  "/Users/uby/dev/jersey-tides/ios/Shared/Theme/Typography.swift" : {
+    "const-values" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/Typography.swiftconstvalues",
+    "dependencies" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/Typography.d",
+    "diagnostics" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/Typography.dia",
+    "object" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/Typography.o",
+    "swift-dependencies" : "/Users/uby/dev/jersey-tides/ios/.derived-device/Build/Intermediates.noindex/JerseyTides.build/Debug-iphoneos/JerseyTides.build/Objects-normal/arm64/Typography.swiftdeps"
+  }
+}

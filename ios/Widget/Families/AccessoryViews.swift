@@ -84,17 +84,17 @@ private struct RectTextContent: View {
     }
 }
 
-/// Curve style (§4.4, §6): rolling `now−1h…now+5h` sparkline (37 `levelAt`
-/// samples every 10 min) behind a single `HW 14:32 · 11.2 m` caption line.
+/// Curve style: the full DAY curve — the Scriptable widget's familiar sinus —
+/// with HW/LW legend markers and the now dot, behind a single
+/// `HW 14:32 · 11.2 m` next-extreme caption line.
 private struct RectCurveContent: View {
     let model: TideDayModel
     let now: Date
     let units: HeightUnit
 
     var body: some View {
-        let window = rollingWindow
         ZStack(alignment: .topLeading) {
-            Sparkline(samples: window.samples, bounds: window.bounds, variant: .rolling(now: now))
+            TideCurveView(model: model, style: .rect)
             if let next = model.nextExtreme {
                 Text(RectTextContent.extremeText(next, units: units))
                     .font(.caption2)
@@ -104,17 +104,6 @@ private struct RectCurveContent: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(WidgetVoice.summary(model, units: units))
-    }
-
-    private var rollingWindow: (samples: [TimelinePoint], bounds: DayBounds) {
-        let start = now.addingTimeInterval(-3600)
-        let bounds = DayBounds(start: start, end: now.addingTimeInterval(5 * 3600))
-        let engine = EngineProvider.engine
-        let samples = (0...36).map { index -> TimelinePoint in
-            let time = start.addingTimeInterval(Double(index) * 600)
-            return TimelinePoint(time: time, height: engine.levelAt(time))
-        }
-        return (samples, bounds)
     }
 }
 
