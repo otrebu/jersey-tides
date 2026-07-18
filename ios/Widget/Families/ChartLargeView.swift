@@ -115,7 +115,7 @@ struct ChartLargeView: View {
                 if index > 0 {
                     Rectangle().fill(Color.hairline).frame(height: 0.5)
                 }
-                tableRow(row, model: model)
+                tableRow(row, index: index, model: model)
             }
         }
     }
@@ -125,11 +125,13 @@ struct ChartLargeView: View {
     }
 
     /// §5.1 row emphasis: past `seaTertiary`, the next extreme full `sea`,
-    /// later-future `seaSecondary`.
-    private func rowEmphasis(_ row: ExtremeRow, model: TideDayModel) -> RowEmphasis {
-        if row.extreme == model.nextExtreme { return .next }
-        if let now = model.nowInstant, row.extreme.time < now { return .past }
-        return .future
+    /// later-future `seaSecondary`. The "next" row is the first not-yet-past
+    /// row of THIS table's scan — never compared against `model.nextExtreme`,
+    /// which comes from a different engine scan and won't be value-equal.
+    private func rowEmphasis(index: Int, model: TideDayModel) -> RowEmphasis {
+        guard let now = model.nowInstant else { return .future }
+        if model.rows[index].extreme.time < now { return .past }
+        return index == model.rows.firstIndex(where: { $0.extreme.time >= now }) ? .next : .future
     }
 
     private func mainColor(_ emphasis: RowEmphasis) -> Color {
@@ -142,8 +144,8 @@ struct ChartLargeView: View {
 
     /// `HW  02:11   10.8   ↑ 9.2` — tag · time · height (right-aligned
     /// tabular) · swing (`seaSecondary`, text arrows per §3).
-    private func tableRow(_ row: ExtremeRow, model: TideDayModel) -> some View {
-        let emphasis = rowEmphasis(row, model: model)
+    private func tableRow(_ row: ExtremeRow, index: Int, model: TideDayModel) -> some View {
+        let emphasis = rowEmphasis(index: index, model: model)
         let dimColor: Color = emphasis == .past ? .seaTertiary : .seaSecondary
         return HStack(spacing: 0) {
             Text(row.extreme.isHigh ? "HW" : "LW")
@@ -159,7 +161,7 @@ struct ChartLargeView: View {
                 .tableStyle()
                 .foregroundStyle(mainColor(emphasis))
                 .frame(width: 56, alignment: .trailing)
-            Text(row.swing.map(TideFormatters.swing) ?? "")
+            Text(row.swing.map { "\($0 >= 0 ? "↑" : "↓") \(TideFormatters.heightValue(abs($0), unit: units))" } ?? "")
                 .tableStyle()
                 .foregroundStyle(dimColor)
                 .frame(width: 64, alignment: .trailing)

@@ -127,9 +127,35 @@ struct TodayScreen: View {
     }
 }
 
-/// Builds one day's model lazily (only rendered pages pay for assembly) and
-/// hands it to `DayPage`. Recreated on every minute tick so the today page's
-/// countdown and now-line stay live (§5.1 `TimelineView(.everyMinute)`).
+/// Process-wide memo of the expensive day assemblies. Engine output is
+/// deterministic for a given day + threshold config, so pager pages and
+/// minute ticks share one assembly; only the cheap `rebased` runs per tick.
+@MainActor
+private enum DayModelCache {
+    private struct Key: Hashable {
+        let day: CalendarDay
+        let markedHeight: Double?
+        let markedLabel: String?
+    }
+
+    private static var store: [Key: TideDayModel] = [:]
+
+    static func base(day: CalendarDay, markedHeight: Double?, markedLabel: String?) -> TideDayModel {
+        let key = Key(day: day, markedHeight: markedHeight, markedLabel: markedLabel)
+        if let cached = store[key] { return cached }
+        if store.count > 96 { store.removeAll(keepingCapacity: true) }
+        let built = TideDayModel.make(
+            day: day, now: nil, markedHeight: markedHeight, markedLabel: markedLabel
+        )
+        store[key] = built
+        return built
+    }
+}
+
+/// Builds one day's model lazily (only rendered pages pay for assembly, once —
+/// memoized in `DayModelCache`) and hands it to `DayPage`. On minute ticks the
+/// today page pays only a `rebased` (a few `levelAt` evals), not a rebuild
+/// (§5.1 `TimelineView(.everyMinute)`).
 private struct DayPageContainer: View {
     let day: CalendarDay
     let isToday: Bool
@@ -141,13 +167,13 @@ private struct DayPageContainer: View {
     let onTomorrowTap: () -> Void
 
     var body: some View {
+        let base = DayModelCache.base(
+            day: day,
+            markedHeight: settings.markedHeight,
+            markedLabel: settings.markedLabelOrNil
+        )
         DayPage(
-            model: TideDayModel.make(
-                day: day,
-                now: isToday ? now : nil,
-                markedHeight: settings.markedHeight,
-                markedLabel: settings.markedLabelOrNil
-            ),
+            model: isToday ? base.rebased(now: now, engine: EngineProvider.engine) : base,
             isToday: isToday,
             units: settings.units,
             timeFormat: settings.timeFormat,

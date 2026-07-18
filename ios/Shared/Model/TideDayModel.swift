@@ -141,6 +141,41 @@ struct TideDayModel: Equatable, Sendable {
         )
     }
 
+    /// Cheap re-target of the now-dependent fields onto an already-assembled
+    /// day model. Widget timelines build one expensive `make` per calendar day
+    /// and one `rebased` per entry (a handful of `levelAt`/`slopeAt` evals vs
+    /// the full ±7-day springs scan) — this is what keeps entry building at
+    /// the <1 ms/entry contract (design doc §12).
+    ///
+    /// `nextExtreme`/`followingExtreme` come from today's extremes plus
+    /// tomorrow's first high + low (alternation guarantees those are
+    /// tomorrow's first two), which covers any `now` within this day.
+    func rebased(now: Date, engine: any TideEngine) -> TideDayModel {
+        let currentHeight = engine.levelAt(now)
+        var candidates = extremes
+        if let tomorrow {
+            candidates += [tomorrow.firstHigh, tomorrow.firstLow].compactMap { $0 }
+        }
+        let upcoming = candidates.sorted { $0.time < $1.time }.filter { $0.time > now }
+        var threshold = self.threshold
+        if let existing = threshold {
+            threshold = Self.thresholdInfo(
+                height: existing.height, label: existing.label,
+                samples: samples, now: now, currentHeight: currentHeight, engine: engine
+            )
+        }
+        return TideDayModel(
+            day: day, bounds: bounds, samples: samples, extremes: extremes, rows: rows,
+            sun: sun, springs: springs, moonCaption: moonCaption,
+            moonSymbolName: moonSymbolName, horizonDatum: horizonDatum,
+            nowInstant: now, currentHeight: currentHeight,
+            isRising: engine.slopeAt(now) > 0,
+            nextExtreme: upcoming.first,
+            followingExtreme: upcoming.count > 1 ? upcoming[1] : nil,
+            threshold: threshold, tomorrow: tomorrow
+        )
+    }
+
     // MARK: Assembly helpers
 
     /// Swing per extreme from a padded window `[dayStart − 15 h, dayEnd)`.

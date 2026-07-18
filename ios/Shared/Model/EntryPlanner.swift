@@ -89,13 +89,27 @@ enum EntryPlanner {
         do {
             let day = TideTime.calendarDay(of: now)
             let instants = try validatedPlan(day: day, engine: engine, now: now)
+            // One expensive full assembly per calendar day (today + the slack
+            // tail's next day), then a cheap `rebased` per entry — keeps entry
+            // building at the <1 ms/entry contract instead of running the
+            // ±7-day springs scan ~60 times.
+            var baseModels: [CalendarDay: TideDayModel] = [:]
             let entries = instants.indices.map { index -> TideEntry in
                 let date = instants[index]
                 let next = index + 1 < instants.count ? instants[index + 1] : nil
-                return TideEntry.make(
-                    at: date,
-                    displayInstant: displayInstant(entryDate: date, nextEntryDate: next),
-                    engine: engine,
+                let instant = displayInstant(entryDate: date, nextEntryDate: next)
+                let entryDay = TideTime.calendarDay(of: instant)
+                let base = baseModels[entryDay] ?? {
+                    let built = TideDayModel.make(
+                        day: entryDay, engine: engine, now: instant,
+                        markedHeight: config.markedHeight, markedLabel: config.markedLabel
+                    )
+                    baseModels[entryDay] = built
+                    return built
+                }()
+                return TideEntry(
+                    date: date, displayInstant: instant,
+                    dayModel: base.rebased(now: instant, engine: engine),
                     config: config
                 )
             }
