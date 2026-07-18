@@ -82,6 +82,7 @@ struct DebugWidgetGallery: View {
                     errorAccessoryRows
                     footerNote
                 }
+                if showsPage(6) { tideWatchRows }
             }
             .padding(24)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -161,6 +162,40 @@ struct DebugWidgetGallery: View {
     /// Manual gate (implementation plan §4): the env override flips code paths
     /// only — real tint desaturation and lock-screen vibrancy must be verified
     /// by placing widgets on a tinted home screen / lock screen in the sim.
+    /// Page 6 — Tide Watch Live Activity faces (lock card + an island mock;
+    /// the real Dynamic Island is verified by starting the activity with
+    /// `-start-tide-watch` and backgrounding the app).
+    @ViewBuilder
+    private var tideWatchRows: some View {
+        let state = TideWatchAttributes.ContentState(
+            nextTime: now.addingTimeInterval(89 * 60),
+            nextHeight: 10.3,
+            nextIsHigh: true,
+            prevTime: now.addingTimeInterval(-215 * 60),
+            prevHeight: 1.3
+        )
+        galleryRow("live activity — lock screen") {
+            TideWatchLockView(stationName: "St Helier · Jersey", state: state)
+                .background(Color.sky, in: RoundedRectangle(cornerRadius: 24))
+                .frame(width: 364)
+        }
+        galleryRow("live activity — island expanded (mock)") {
+            VStack(spacing: 0) {
+                HStack(alignment: .top) {
+                    TideWatchIslandLeading(state: state)
+                    Spacer()
+                    TideWatchIslandTrailing(state: state)
+                }
+                TideWatchIslandBottom(state: state)
+                    .padding(.top, 8)
+            }
+            .padding(20)
+            .frame(width: 364)
+            .background(.black, in: RoundedRectangle(cornerRadius: 44))
+            .environment(\.colorScheme, .dark)
+        }
+    }
+
     private var footerNote: some View {
         Text(
             "MANUAL GATE — accented/vibrant compositing is not simulated: "

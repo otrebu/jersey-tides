@@ -11,6 +11,7 @@ struct TodayScreen: View {
     @Binding var requestedDay: CalendarDay?
 
     @StateObject private var settings = SettingsStore()
+    @StateObject private var tideWatch = TideWatchController()
     /// Pager selection as a signed day offset from `baseDay`; 0 = today.
     @State private var selection = 0
     /// Today at screen creation; refreshed on foreground when the day rolls.
@@ -50,9 +51,11 @@ struct TodayScreen: View {
         .onChange(of: scenePhase) { _, phase in
             guard phase == .active else { return }
             refreshDayAndWidgetsOnForeground()
+            tideWatch.rollForwardIfNeeded(engine: EngineProvider.engine, now: clock.now)
         }
         .onAppear {
             consumeDeepLink(requestedDay)
+            tideWatch.adoptExisting()
             applyHarnessArguments()
         }
     }
@@ -63,6 +66,9 @@ struct TodayScreen: View {
         #if DEBUG
         if let raw = LaunchArguments.value(for: "-harness-page"), let offset = Int(raw) {
             selection = min(max(offset, -DeepLink.pageRadius), DeepLink.pageRadius)
+        }
+        if ProcessInfo.processInfo.arguments.contains("-start-tide-watch") {
+            tideWatch.start(engine: EngineProvider.engine, now: clock.now)
         }
         switch LaunchArguments.value(for: "-harness-sheet") {
         case "fortnight": showFortnight = true
@@ -80,6 +86,7 @@ struct TodayScreen: View {
                     isToday: offset == 0,
                     now: now,
                     settings: settings,
+                    tideWatch: tideWatch,
                     onGearTap: { showSettings = true },
                     onTodayTap: { page(toOffset: 0) },
                     onSpringsTap: { showFortnight = true },
@@ -161,6 +168,7 @@ private struct DayPageContainer: View {
     let isToday: Bool
     let now: Date
     @ObservedObject var settings: SettingsStore
+    @ObservedObject var tideWatch: TideWatchController
     let onGearTap: () -> Void
     let onTodayTap: () -> Void
     let onSpringsTap: () -> Void
@@ -181,7 +189,11 @@ private struct DayPageContainer: View {
             onGearTap: onGearTap,
             onTodayTap: onTodayTap,
             onSpringsTap: onSpringsTap,
-            onTomorrowTap: onTomorrowTap
+            onTomorrowTap: onTomorrowTap,
+            isWatching: tideWatch.isWatching,
+            onWatchTap: isToday
+                ? { tideWatch.toggle(engine: EngineProvider.engine, now: now) }
+                : nil
         )
     }
 }

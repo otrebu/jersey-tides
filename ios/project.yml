@@ -40,6 +40,7 @@ targets:
       properties:
         CFBundleDisplayName: Jersey Tides
         UILaunchScreen: {}
+        NSSupportsLiveActivities: true
         CFBundleURLTypes:
           - CFBundleURLName: je.ub.tides
             CFBundleURLSchemes: [jerseytides]

@@ -12,6 +12,7 @@ struct TidesWidgetBundle: WidgetBundle {
         ChartWidget()
         RectWidget()
         GlanceWidget()
+        TideWatchActivityWidget()
     }
 }
 

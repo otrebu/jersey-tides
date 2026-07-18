@@ -20,6 +20,9 @@ struct DayPage: View {
     var onTodayTap: () -> Void = {}
     var onSpringsTap: () -> Void = {}
     var onTomorrowTap: () -> Void = {}
+    /// Tide Watch Live Activity toggle — today page only; nil hides the button.
+    var isWatching: Bool = false
+    var onWatchTap: (() -> Void)?
 
     /// Dial hero size — 84 pt scaled with Dynamic Type, clamped 64–96 (§3).
     @ScaledMetric(relativeTo: .largeTitle) private var dialSize: CGFloat = 84
@@ -53,6 +56,15 @@ struct DayPage: View {
                 Spacer()
                 if !isToday {
                     todayChip
+                }
+                if isToday, let onWatchTap {
+                    Button(action: onWatchTap) {
+                        Image(systemName: isWatching ? "water.waves" : "water.waves.slash")
+                            .imageScale(.small)
+                            .foregroundStyle(isWatching ? .sea : .seaSecondary)
+                            .contentTransition(.symbolEffect(.replace))
+                    }
+                    .accessibilityLabel(isWatching ? "Stop Tide Watch" : "Start Tide Watch")
                 }
                 Button(action: onGearTap) {
                     Image(systemName: "gear")
