@@ -27,12 +27,14 @@ struct CurveStyle: Equatable, Sendable {
         showsSunTicks: true, showsSunTimes: false,
         showsExtremeLabels: true, showsExtremeMarkers: true
     )
-    /// systemLarge — labeled horizon, sun ticks + times.
+    /// systemLarge — labeled horizon, sun ticks. The 4-column table and SUN
+    /// row sit directly below the plot, so in-plot extreme labels and sun
+    /// times would say everything twice — the large curve stays quiet.
     static let large = CurveStyle(
         insets: .init(top: 22, bottom: 20), strokeWidth: 1.5,
         showsHorizonLine: true, showsHorizonLabel: true,
-        showsSunTicks: true, showsSunTimes: true,
-        showsExtremeLabels: true, showsExtremeMarkers: true
+        showsSunTicks: true, showsSunTimes: false,
+        showsExtremeLabels: false, showsExtremeMarkers: true
     )
     /// accessoryRectangular Curve style — 2 pt stroke, markers only.
     static let rect = CurveStyle(
