@@ -10,3 +10,4 @@ dist/
 xcuserdata/
 *.xcodeproj
 ios/.derived/
+ios/.derived-device/
