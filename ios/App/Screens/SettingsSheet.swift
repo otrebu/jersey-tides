@@ -51,11 +51,18 @@ struct SettingsSheet: View {
         }
     }
 
-    /// About footer (§5.3) — Meta voice.
+    /// About footer (§5.3) — Meta voice: the provenance line, then the
+    /// accuracy note. The note is the app's only disclaimer surface — widgets
+    /// and the Live Activity are glanceable and deep-link back here.
     private var aboutFooter: some View {
-        Text(
-            "Harmonic predictions computed on-device, fitted to Jersey Coastguard (gov.je) tables · Station: \(EngineProvider.engine.stationName) · engine v\(EngineProvider.engine.engineVersion)"
-        )
+        VStack(alignment: .leading, spacing: 8) {
+            Text(
+                "Harmonic predictions computed on-device, fitted to Jersey Coastguard (gov.je) tables · Station: \(EngineProvider.engine.stationName) · engine v\(EngineProvider.engine.engineVersion)"
+            )
+            Text(
+                "Predictions are estimates: they can differ from official tables, and real water levels shift with weather and surge. Not for navigation or safety-critical use."
+            )
+        }
         .metaStyle()
         .padding(.top, 8)
     }

@@ -5,6 +5,9 @@ import WidgetKit
 /// "Tide Watch" Live Activity — the flood/ebb run to the next extreme, live in
 /// the Dynamic Island and on the lock screen with zero app-driven updates
 /// (system timers only). Views in Widget/Families/TideWatchViews.swift.
+/// Compact = wave badge + absolute next-extreme time (both fixed for the whole
+/// run); minimal = the badge alone; the only countdown is the expanded
+/// trailing region's — the lock card carries the run gauge instead.
 struct TideWatchActivityWidget: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: TideWatchAttributes.self) { context in
@@ -24,20 +27,21 @@ struct TideWatchActivityWidget: Widget {
                         .padding(.top, 4)
                 }
             } compactLeading: {
-                Image(systemName: TideWatchVoice.arrowName(context.state))
-                    .imageScale(.small)
-                    .foregroundStyle(.white)
+                TideWaveGlyph(state: context.state)
+                    .frame(width: 23, height: 23)
             } compactTrailing: {
-                Text(timerInterval: context.state.interval, countsDown: true)
-                    .font(.caption2)
+                // `compactTime` (narrow day period), not `time`: "10:47 PM"
+                // outgrows the slot in 12-hour locales; "10:47p" stays one
+                // short absolute element.
+                Text(TideFormatters.compactTime(context.state.nextTime))
+                    .font(.caption2.weight(.semibold))
                     .monospacedDigit()
-                    .multilineTextAlignment(.trailing)
-                    .frame(maxWidth: 44)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
                     .foregroundStyle(.white)
             } minimal: {
-                Image(systemName: TideWatchVoice.arrowName(context.state))
-                    .imageScale(.small)
-                    .foregroundStyle(.white)
+                TideWaveGlyph(state: context.state)
+                    .frame(width: 25, height: 25)
             }
             .keylineTint(Color.dawn)
         }

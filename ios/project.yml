@@ -44,6 +44,10 @@ targets:
         CFBundleURLTypes:
           - CFBundleURLName: je.ub.tides
             CFBundleURLSchemes: [jerseytides]
+        # Siri app-name synonym: lets "\(.applicationName)" phrases match
+        # "…in Jersey" as well as "…in Jersey Tides" (max 3 entries).
+        INAlternativeAppNames:
+          - INAlternativeAppName: Jersey
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: je.ub.tides
@@ -75,6 +79,20 @@ schemes:
   JerseyTides:
     build:
       targets: { JerseyTides: all }
+      # Xcode always ad-hoc signs simulator products ("Sign to Run Locally");
+      # CODE_SIGN_IDENTITY overrides are ignored for the sim SDK. But linkd
+      # reads the teamId from the code signature and rejects the App Shortcuts
+      # XPC without one — Siri/Shortcuts tiles fail with "Unable to run App
+      # Shortcut". Re-sign the built product with the real dev cert (appex
+      # first, then app) so Siri works in the simulator.
+      postActions:
+        - name: Re-sign simulator build for App Shortcuts
+          settingsTarget: JerseyTides
+          script: |
+            if [ "$PLATFORM_NAME" = "iphonesimulator" ]; then
+              codesign -f -s "Apple Development" "$CODESIGNING_FOLDER_PATH/PlugIns/JerseyTidesWidget.appex"
+              codesign -f -s "Apple Development" "$CODESIGNING_FOLDER_PATH"
+            fi
     run:
       config: Debug
     test:

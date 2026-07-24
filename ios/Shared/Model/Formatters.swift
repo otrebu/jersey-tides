@@ -63,6 +63,18 @@ enum TideFormatters {
         return instant.formatted(style)
     }
 
+    /// `"14:32"` / `"10:47p"` — the island's compact slot only: hour + minute
+    /// with the *narrow* day period glued on, because "10:47 PM" outgrows the
+    /// tightest slot on the phone. Follows the system hour cycle, like every
+    /// widget surface.
+    static func compactTime(_ instant: Date) -> String {
+        let style = Date.FormatStyle(timeZone: TideTime.timeZone)
+            .hour(.defaultDigits(amPM: .narrow)).minute(.twoDigits)
+        return instant.formatted(style)
+            .replacingOccurrences(of: "\u{202F}", with: "")
+            .replacingOccurrences(of: " ", with: "")
+    }
+
     /// `"in 2 h 08 m"` / `"in 42 m"` / `"now"` — in-app only; widgets never
     /// show relative times.
     static func countdown(to target: Date, from now: Date) -> String {

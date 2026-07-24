@@ -17,13 +17,13 @@ final class TideWatchController: ObservableObject {
         isWatching = activity != nil
     }
 
-    func toggle(engine: any TideEngine, now: Date) {
-        if isWatching { stop() } else { start(engine: engine, now: now) }
+    func toggle(engine: any TideEngine, now: Date, units: HeightUnit) {
+        if isWatching { stop() } else { start(engine: engine, now: now, units: units) }
     }
 
-    func start(engine: any TideEngine, now: Date) {
+    func start(engine: any TideEngine, now: Date, units: HeightUnit) {
         guard ActivityAuthorizationInfo().areActivitiesEnabled,
-              let state = Self.runState(engine: engine, now: now) else { return }
+              let state = Self.runState(engine: engine, now: now, units: units) else { return }
         activity = try? Activity.request(
             attributes: Self.attributes(engine: engine, now: now),
             content: .init(state: state, staleDate: state.nextTime.addingTimeInterval(15 * 60))
@@ -74,28 +74,41 @@ final class TideWatchController: ObservableObject {
     /// On foreground: if the watched extreme has passed, restart the activity
     /// on the current run. Restart (not update) so the attributes' day-curve
     /// snapshot is rebuilt — it can never go stale across a midnight rollover.
-    func rollForwardIfNeeded(engine: any TideEngine, now: Date) {
+    func rollForwardIfNeeded(engine: any TideEngine, now: Date, units: HeightUnit) {
         guard let activity, activity.content.state.nextTime <= now else { return }
         stop()
-        start(engine: engine, now: now)
+        start(engine: engine, now: now, units: units)
     }
 
-    /// The current flood/ebb run: previous extreme → next extreme around `now`.
+    /// The current flood/ebb run: previous extreme → next extreme around `now`,
+    /// plus the next high water at or beyond the next extreme (the lock card's
+    /// hero even when a low comes first). The 30 h forward window always
+    /// contains it — St Helier extremes sit ~6.2 h apart. `units` is baked
+    /// into the state: the extension can't read the app's defaults (no App
+    /// Group), and the setting can't change without the app foregrounding —
+    /// the same moment every other absolute here gets rebuilt.
     private static func runState(
-        engine: any TideEngine, now: Date
+        engine: any TideEngine, now: Date, units: HeightUnit
     ) -> TideWatchAttributes.ContentState? {
         let window = engine.extremes(
             from: now.addingTimeInterval(-15 * 3600),
             to: now.addingTimeInterval(30 * 3600)
         )
-        guard let next = window.first(where: { $0.time > now }),
-              let prev = window.last(where: { $0.time <= now }) else { return nil }
+        guard let nextIndex = window.firstIndex(where: { $0.time > now }),
+              nextIndex > 0 else { return nil }
+        let next = window[nextIndex]
+        let prev = window[nextIndex - 1]
+        guard let nextHigh = window[nextIndex...].first(where: { $0.isHigh })
+        else { return nil }
         return TideWatchAttributes.ContentState(
             nextTime: next.time,
             nextHeight: next.height,
             nextIsHigh: next.isHigh,
             prevTime: prev.time,
-            prevHeight: prev.height
+            prevHeight: prev.height,
+            nextHighTime: nextHigh.time,
+            nextHighHeight: nextHigh.height,
+            unit: units
         )
     }
 }

@@ -13,7 +13,7 @@ import WidgetKit
 ///   flipping every mode-dependent code path. The system compositor's actual
 ///   tinting/vibrancy is NOT simulated — final visual sign-off for accented /
 ///   vibrant is the manual gate in the footer row.
-/// - `-harness-page 1|2|3|4|5` — one section per launch (screenshot paging;
+/// - `-harness-page 1|2|3|4|5|6|7` — one section per launch (screenshot paging;
 ///   each page fits a single iPhone screen); omit to stack all sections in
 ///   one scroll.
 struct DebugWidgetGallery: View {
@@ -83,6 +83,7 @@ struct DebugWidgetGallery: View {
                     footerNote
                 }
                 if showsPage(6) { tideWatchRows }
+                if showsPage(7) { siriSnippetRows }
             }
             .padding(24)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -162,17 +163,32 @@ struct DebugWidgetGallery: View {
     /// Manual gate (implementation plan §4): the env override flips code paths
     /// only — real tint desaturation and lock-screen vibrancy must be verified
     /// by placing widgets on a tinted home screen / lock screen in the sim.
-    /// Page 6 — Tide Watch Live Activity faces (lock card + an island mock;
-    /// the real Dynamic Island is verified by starting the activity with
-    /// `-start-tide-watch` and backgrounding the app).
+    /// Page 6 — Tide Watch Live Activity faces (lock card + island mocks).
+    /// The compact/minimal mocks use secondary-source slot metrics (the
+    /// 52 × 36.67 class) — the real Dynamic Island remains the manual gate,
+    /// verified by starting the activity with `-start-tide-watch` and
+    /// backgrounding the app.
     @ViewBuilder
     private var tideWatchRows: some View {
-        let state = TideWatchAttributes.ContentState(
+        let rising = TideWatchAttributes.ContentState(
             nextTime: now.addingTimeInterval(89 * 60),
             nextHeight: 10.3,
             nextIsHigh: true,
             prevTime: now.addingTimeInterval(-215 * 60),
-            prevHeight: 1.3
+            prevHeight: 1.3,
+            nextHighTime: now.addingTimeInterval(89 * 60),
+            nextHighHeight: 10.3,
+            unit: .metres
+        )
+        let falling = TideWatchAttributes.ContentState(
+            nextTime: now.addingTimeInterval(140 * 60),
+            nextHeight: 1.2,
+            nextIsHigh: false,
+            prevTime: now.addingTimeInterval(-160 * 60),
+            prevHeight: 10.1,
+            nextHighTime: now.addingTimeInterval(9 * 3600 + 25 * 60),
+            nextHighHeight: 9.8,
+            unit: .metres
         )
         let mockAttributes = TideWatchAttributes(
             stationName: "St Helier · Jersey",
@@ -184,25 +200,76 @@ struct DebugWidgetGallery: View {
                 .init(fraction: 0.90, level: 0.95, isHigh: true),
             ]
         )
-        galleryRow("live activity — lock screen") {
-            TideWatchLockView(stationName: "St Helier · Jersey", state: state)
+        galleryRow("live activity — lock screen (flooding)") {
+            TideWatchLockView(stationName: "St Helier · Jersey", state: rising)
+                .background(Color.sky, in: RoundedRectangle(cornerRadius: 24))
+                .frame(width: 364)
+        }
+        galleryRow("live activity — lock screen (ebbing)") {
+            TideWatchLockView(stationName: "St Helier · Jersey", state: falling)
                 .background(Color.sky, in: RoundedRectangle(cornerRadius: 24))
                 .frame(width: 364)
         }
         galleryRow("live activity — island expanded (mock)") {
             VStack(spacing: 0) {
                 HStack(alignment: .top) {
-                    TideWatchIslandLeading(state: state)
+                    TideWatchIslandLeading(state: rising)
                     Spacer()
-                    TideWatchIslandTrailing(state: state)
+                    TideWatchIslandTrailing(state: rising)
                 }
-                TideWatchIslandBottom(attributes: mockAttributes, state: state)
+                TideWatchIslandBottom(attributes: mockAttributes, state: rising)
                     .padding(.top, 8)
             }
             .padding(20)
             .frame(width: 364)
             .background(.black, in: RoundedRectangle(cornerRadius: 44))
             .environment(\.colorScheme, .dark)
+        }
+        galleryRow("live activity — island compact (mock)") {
+            HStack(spacing: 16) {
+                compactIslandMock(state: rising)
+                compactIslandMock(state: falling)
+            }
+        }
+        galleryRow("live activity — minimal + glyph level sweep (mock)") {
+            HStack(spacing: 10) {
+                minimalIslandMock(state: rising)
+                minimalIslandMock(state: falling)
+                ForEach([0.15, 0.35, 0.5, 0.65, 0.85], id: \.self) { level in
+                    TideWaveGlyph(level: level, rising: level >= 0.5)
+                        .frame(width: 25, height: 25)
+                        .padding(6)
+                        .background(.black, in: Circle())
+                }
+            }
+            .environment(\.colorScheme, .dark)
+        }
+    }
+
+    /// Page 7 — Siri snippet cards (`App/Intents/`). Rendered on a `sky`
+    /// card here; in Siri the system material is the background.
+    @ViewBuilder
+    private var siriSnippetRows: some View {
+        let engine = EngineProvider.engine
+        let extremes = engine.extremes(from: now, to: now.addingTimeInterval(48 * 3600))
+        if let next = extremes.first {
+            galleryRow("siri snippet — next extreme") {
+                TideExtremeSnippetView(
+                    stationName: engine.stationName, extreme: next, now: now,
+                    units: .metres, timeFormat: .system
+                )
+                .background(Color.sky, in: RoundedRectangle(cornerRadius: 24))
+                .frame(width: 364)
+            }
+            galleryRow("siri snippet — tide now") {
+                TideNowSnippetView(
+                    stationName: engine.stationName, level: engine.levelAt(now),
+                    rising: next.isHigh, next: next,
+                    units: .metres, timeFormat: .system
+                )
+                .background(Color.sky, in: RoundedRectangle(cornerRadius: 24))
+                .frame(width: 364)
+            }
         }
     }
 
@@ -240,6 +307,36 @@ struct DebugWidgetGallery: View {
             .padding(10)
             .background(Color(red: 0.09, green: 0.11, blue: 0.15))
             .clipShape(RoundedRectangle(cornerRadius: 18))
+            .environment(\.colorScheme, .dark)
+    }
+
+    /// Compact island mock: real slot metrics (23 pt glyph, 37 pt pill) with a
+    /// spacer standing in for the TrueDepth sensor region.
+    private func compactIslandMock(state: TideWatchAttributes.ContentState) -> some View {
+        HStack(spacing: 0) {
+            TideWaveGlyph(state: state)
+                .frame(width: 23, height: 23)
+            Spacer().frame(width: 70)
+            // Same formatter as the real face, so a 12-hour locale's wider
+            // time ("10:47p") shows up in the mock too.
+            Text(TideFormatters.compactTime(state.nextTime))
+                .font(.caption2.weight(.semibold))
+                .monospacedDigit()
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+                .foregroundStyle(.white)
+        }
+        .padding(.horizontal, 9)
+        .frame(height: 37)
+        .background(.black, in: Capsule())
+        .environment(\.colorScheme, .dark)
+    }
+
+    private func minimalIslandMock(state: TideWatchAttributes.ContentState) -> some View {
+        TideWaveGlyph(state: state)
+            .frame(width: 25, height: 25)
+            .frame(width: 37, height: 37)
+            .background(.black, in: Circle())
             .environment(\.colorScheme, .dark)
     }
 

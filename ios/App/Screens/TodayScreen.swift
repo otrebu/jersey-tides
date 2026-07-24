@@ -51,7 +51,9 @@ struct TodayScreen: View {
         .onChange(of: scenePhase) { _, phase in
             guard phase == .active else { return }
             refreshDayAndWidgetsOnForeground()
-            tideWatch.rollForwardIfNeeded(engine: EngineProvider.engine, now: clock.now)
+            tideWatch.rollForwardIfNeeded(
+                engine: EngineProvider.engine, now: clock.now, units: settings.units
+            )
         }
         .onAppear {
             consumeDeepLink(requestedDay)
@@ -68,7 +70,7 @@ struct TodayScreen: View {
             selection = min(max(offset, -DeepLink.pageRadius), DeepLink.pageRadius)
         }
         if ProcessInfo.processInfo.arguments.contains("-start-tide-watch") {
-            tideWatch.start(engine: EngineProvider.engine, now: clock.now)
+            tideWatch.start(engine: EngineProvider.engine, now: clock.now, units: settings.units)
         }
         switch LaunchArguments.value(for: "-harness-sheet") {
         case "fortnight": showFortnight = true
@@ -192,7 +194,7 @@ private struct DayPageContainer: View {
             onTomorrowTap: onTomorrowTap,
             isWatching: tideWatch.isWatching,
             onWatchTap: isToday
-                ? { tideWatch.toggle(engine: EngineProvider.engine, now: now) }
+                ? { tideWatch.toggle(engine: EngineProvider.engine, now: now, units: settings.units) }
                 : nil
         )
     }
