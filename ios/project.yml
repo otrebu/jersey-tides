@@ -1,0 +1,99 @@
+# XcodeGen spec — regenerate with `xcodegen generate` after every edit.
+# The generated .xcodeproj is gitignored; never hand-edit the .pbxproj.
+#
+# The TidesCore local SwiftPM package (fixture-parity engine port) is linked
+# into BOTH targets; the app runs on TidesCoreEngine behind the TideEngine
+# facade (Shared/Engine/). Only Shared/Engine/TidesCoreEngine.swift may
+# import TidesCore — all other UI code goes through the facade.
+name: JerseyTides
+options:
+  bundleIdPrefix: je.ub
+  deploymentTarget:
+    iOS: "26.0"
+  createIntermediateGroups: true
+packages:
+  TidesCore:
+    path: TidesCore # local SwiftPM package dependency
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    DEVELOPMENT_TEAM: BGG923HX2A
+    CODE_SIGN_STYLE: Automatic
+targets:
+  JerseyTides:
+    type: application
+    platform: iOS
+    sources:
+      - App
+      - Shared
+      # Widget family views + error tile are compiled into the app too so the
+      # DEBUG widget gallery (-harness widgets) can render every entry view
+      # directly (implementation plan §4 "DebugWidgetGallery spec").
+      - Widget/Families
+      - Widget/ErrorTileView.swift
+    dependencies:
+      - package: TidesCore
+      - target: JerseyTidesWidget
+        embed: true # embeds the appex
+    info:
+      path: App/Info.plist # XcodeGen generates it
+      properties:
+        CFBundleDisplayName: Jersey Tides
+        UILaunchScreen: {}
+        NSSupportsLiveActivities: true
+        CFBundleURLTypes:
+          - CFBundleURLName: je.ub.tides
+            CFBundleURLSchemes: [jerseytides]
+        # Siri app-name synonym: lets "\(.applicationName)" phrases match
+        # "…in Jersey" as well as "…in Jersey Tides" (max 3 entries).
+        INAlternativeAppNames:
+          - INAlternativeAppName: Jersey
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: je.ub.tides
+  JerseyTidesWidget:
+    type: app-extension # WidgetKit extension
+    platform: iOS
+    sources: [Widget, Shared]
+    dependencies:
+      - package: TidesCore
+    info:
+      path: Widget/Info.plist
+      properties:
+        CFBundleDisplayName: Jersey Tides
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: je.ub.tides.widget
+  JerseyTidesTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources: [Tests]
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+    dependencies:
+      - target: JerseyTides
+schemes:
+  JerseyTides:
+    build:
+      targets: { JerseyTides: all }
+      # Xcode always ad-hoc signs simulator products ("Sign to Run Locally");
+      # CODE_SIGN_IDENTITY overrides are ignored for the sim SDK. But linkd
+      # reads the teamId from the code signature and rejects the App Shortcuts
+      # XPC without one — Siri/Shortcuts tiles fail with "Unable to run App
+      # Shortcut". Re-sign the built product with the real dev cert (appex
+      # first, then app) so Siri works in the simulator.
+      postActions:
+        - name: Re-sign simulator build for App Shortcuts
+          settingsTarget: JerseyTides
+          script: |
+            if [ "$PLATFORM_NAME" = "iphonesimulator" ]; then
+              codesign -f -s "Apple Development" "$CODESIGNING_FOLDER_PATH/PlugIns/JerseyTidesWidget.appex"
+              codesign -f -s "Apple Development" "$CODESIGNING_FOLDER_PATH"
+            fi
+    run:
+      config: Debug
+    test:
+      targets: [JerseyTidesTests]
