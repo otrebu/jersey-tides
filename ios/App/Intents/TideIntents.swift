@@ -79,9 +79,11 @@ struct NextHighTideIntent: AppIntent {
         let extreme = try nextExtreme(ofKind: .high, after: now)
         let station = EngineProvider.engine.stationName
         let time = TideFormatters.time(extreme.time, format: settings.timeFormat)
+        // Single-string dialog on purpose: a `full:supporting:` split makes
+        // Siri speak only the short supporting line when the snippet is on
+        // screen — the numbers must be spoken aloud everywhere.
         let dialog = IntentDialog(
-            full: "Next high water at \(station) is at \(time), \(WidgetVoice.spokenHeight(extreme.height, unit: settings.units)) — \(TideSpeech.countdown(to: extreme.time, from: now)).",
-            supporting: "Next high water at \(station)."
+            "Next high water at \(station) is at \(time), \(WidgetVoice.spokenHeight(extreme.height, unit: settings.units)) — \(TideSpeech.countdown(to: extreme.time, from: now))."
         )
         return .result(
             dialog: dialog,
@@ -107,8 +109,7 @@ struct NextLowTideIntent: AppIntent {
         let station = EngineProvider.engine.stationName
         let time = TideFormatters.time(extreme.time, format: settings.timeFormat)
         let dialog = IntentDialog(
-            full: "Next low water at \(station) is at \(time), \(WidgetVoice.spokenHeight(extreme.height, unit: settings.units)) — \(TideSpeech.countdown(to: extreme.time, from: now)).",
-            supporting: "Next low water at \(station)."
+            "Next low water at \(station) is at \(time), \(WidgetVoice.spokenHeight(extreme.height, unit: settings.units)) — \(TideSpeech.countdown(to: extreme.time, from: now))."
         )
         return .result(
             dialog: dialog,
@@ -140,8 +141,7 @@ struct CurrentTideIntent: AppIntent {
         let station = engine.stationName
         let time = TideFormatters.time(next.time, format: settings.timeFormat)
         let dialog = IntentDialog(
-            full: "The tide at \(station) is \(WidgetVoice.spokenHeight(level, unit: settings.units)) and \(rising ? "rising" : "falling") — \(rising ? "high" : "low") water at \(time) will \(rising ? "reach" : "fall to") \(WidgetVoice.spokenHeight(next.height, unit: settings.units)).",
-            supporting: "Tide now at \(station)."
+            "The tide at \(station) is \(WidgetVoice.spokenHeight(level, unit: settings.units)) and \(rising ? "rising" : "falling") — \(rising ? "high" : "low") water at \(time) will \(rising ? "reach" : "fall to") \(WidgetVoice.spokenHeight(next.height, unit: settings.units)), \(TideSpeech.countdown(to: next.time, from: now))."
         )
         return .result(
             dialog: dialog,
