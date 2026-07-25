@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import WidgetKit
 
 /// Screen 1 — the instrument face (design doc §5.1): `TabView(.page)` pager
@@ -18,7 +19,10 @@ struct TodayScreen: View {
     @State private var baseDay = TideTime.calendarDay(of: EngineProvider.clock.now)
     @State private var showFortnight = false
     @State private var showSettings = false
+    /// Day-transition "night passing" veil opacity (mockup `--veil`).
+    @State private var veilOpacity: Double = 0
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private let clock = EngineProvider.clock
 
@@ -27,6 +31,15 @@ struct TodayScreen: View {
             pager(now: clock.now)
         }
         .background(Color.sky.ignoresSafeArea())
+        // Subtle darken-then-lighten hint as the day changes (§5.1 redesign);
+        // above the pages, below the status bar, never intercepts touches.
+        .overlay {
+            Color.nightVeil
+                .opacity(veilOpacity)
+                .ignoresSafeArea()
+                .allowsHitTesting(false)
+        }
+        .onChange(of: selection) { _, _ in pulseVeil() }
         // Almanac graft #5b: one soft tick when paging lands back on today —
         // nothing fires leaving today or between other days.
         .sensoryFeedback(.impact(weight: .light, intensity: 0.6), trigger: selection == 0) { _, new in
@@ -85,14 +98,16 @@ struct TodayScreen: View {
             ForEach(-DeepLink.pageRadius...DeepLink.pageRadius, id: \.self) { offset in
                 DayPageContainer(
                     day: TideTime.addDays(baseDay, offset),
+                    dayOffset: offset,
                     isToday: offset == 0,
+                    isActivePage: offset == selection,
                     now: now,
                     settings: settings,
                     tideWatch: tideWatch,
                     onGearTap: { showSettings = true },
                     onTodayTap: { page(toOffset: 0) },
                     onSpringsTap: { showFortnight = true },
-                    onTomorrowTap: { page(toOffset: min(offset + 1, DeepLink.pageRadius)) }
+                    onSelectOffset: { page(toOffset: $0) }
                 )
                 .tag(offset)
             }
@@ -108,8 +123,21 @@ struct TodayScreen: View {
     }
 
     private func page(toOffset offset: Int) {
+        let clamped = min(max(offset, -DeepLink.pageRadius), DeepLink.pageRadius)
         withAnimation(.easeInOut(duration: 0.18)) {
-            selection = offset
+            selection = clamped
+        }
+    }
+
+    /// Subtle "night passing" hint on day changes: darken briefly, then
+    /// lighten back. Skipped entirely under Reduce Motion.
+    private func pulseVeil() {
+        guard !reduceMotion else { return }
+        withAnimation(.easeIn(duration: 0.12)) {
+            veilOpacity = 0.14
+        }
+        withAnimation(.easeOut(duration: 0.34).delay(0.12)) {
+            veilOpacity = 0
         }
     }
 
@@ -167,14 +195,17 @@ private enum DayModelCache {
 /// (§5.1 `TimelineView(.everyMinute)`).
 private struct DayPageContainer: View {
     let day: CalendarDay
+    let dayOffset: Int
     let isToday: Bool
+    /// Whether this page is the currently selected pager page.
+    let isActivePage: Bool
     let now: Date
     @ObservedObject var settings: SettingsStore
     @ObservedObject var tideWatch: TideWatchController
     let onGearTap: () -> Void
     let onTodayTap: () -> Void
     let onSpringsTap: () -> Void
-    let onTomorrowTap: () -> Void
+    let onSelectOffset: (Int) -> Void
 
     var body: some View {
         let base = DayModelCache.base(
@@ -185,17 +216,30 @@ private struct DayPageContainer: View {
         DayPage(
             model: isToday ? base.rebased(now: now, engine: EngineProvider.engine) : base,
             isToday: isToday,
+            dayOffset: dayOffset,
+            isActivePage: isActivePage,
             units: settings.units,
             timeFormat: settings.timeFormat,
             showsSun: settings.sunEvents,
             onGearTap: onGearTap,
             onTodayTap: onTodayTap,
             onSpringsTap: onSpringsTap,
-            onTomorrowTap: onTomorrowTap,
+            onSelectOffset: onSelectOffset,
             isWatching: tideWatch.isWatching,
             onWatchTap: isToday
                 ? { tideWatch.toggle(engine: EngineProvider.engine, now: now, units: settings.units) }
                 : nil
         )
     }
+}
+
+private extension Color {
+    /// Day-transition veil ink (mockup `--veil`): near-black blue in light,
+    /// pure black in dark. App-local — not a shared token, so widget rendering
+    /// is untouched.
+    static let nightVeil = Color(uiColor: UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 0, green: 0, blue: 0, alpha: 1)
+            : UIColor(red: 6 / 255, green: 18 / 255, blue: 26 / 255, alpha: 1)
+    })
 }

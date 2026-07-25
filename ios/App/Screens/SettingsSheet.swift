@@ -20,7 +20,7 @@ struct SettingsSheet: View {
                         Text("24-hour").tag(TimeFormatOption.twentyFourHour)
                         Text("12-hour").tag(TimeFormatOption.twelveHour)
                     }
-                    Toggle("Sun events", isOn: $settings.sunEvents)
+                    Toggle("Sun marks on chart", isOn: $settings.sunEvents)
                 }
                 Section {
                     Toggle("Mark a height", isOn: markEnabled)

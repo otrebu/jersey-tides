@@ -55,6 +55,9 @@ struct TideDayModel: Equatable, Sendable {
     let moonCaption: String?
     /// Header glyph for the current phase ("moonphase.full.moon").
     let moonSymbolName: String?
+    /// Full lunar phase at local noon: name, illuminated fraction, cycle
+    /// fraction (limb rendering) and glyph — the redesign's moon row.
+    let moonPhase: MoonPhase
     /// Horizon-line datum: (day max + day min) / 2 (design doc §4.3).
     let horizonDatum: Double
     /// Display instant for level/now-dot; nil on non-today pages.
@@ -85,7 +88,7 @@ struct TideDayModel: Equatable, Sendable {
         let springs = classifySprings(day: day, dayExtremes: extremes, engine: engine)
 
         let noonish = bounds.start.addingTimeInterval(bounds.duration / 2)
-        let (caption, symbol) = moonInfo(day: day, at: noonish, engine: engine)
+        let (caption, phase) = moonInfo(day: day, at: noonish, engine: engine)
 
         let heights = extremes.map(\.height)
         let sampleHeights = samples.map(\.height)
@@ -129,7 +132,8 @@ struct TideDayModel: Equatable, Sendable {
             sun: sun,
             springs: springs,
             moonCaption: caption,
-            moonSymbolName: symbol,
+            moonSymbolName: phase.systemImageName,
+            moonPhase: phase,
             horizonDatum: (maxHeight + minHeight) / 2,
             nowInstant: now,
             currentHeight: currentHeight,
@@ -167,7 +171,7 @@ struct TideDayModel: Equatable, Sendable {
         return TideDayModel(
             day: day, bounds: bounds, samples: samples, extremes: extremes, rows: rows,
             sun: sun, springs: springs, moonCaption: moonCaption,
-            moonSymbolName: moonSymbolName, horizonDatum: horizonDatum,
+            moonSymbolName: moonSymbolName, moonPhase: moonPhase, horizonDatum: horizonDatum,
             nowInstant: now, currentHeight: currentHeight,
             isRising: engine.slopeAt(now) > 0,
             nextExtreme: upcoming.first,
@@ -218,26 +222,27 @@ struct TideDayModel: Equatable, Sendable {
         return nil
     }
 
-    /// Nearest quarter-phase event within ±7 d → caption; phase glyph for the header.
+    /// Full phase at `instant` for the header/moon row, plus the nearest
+    /// quarter-phase event within ±7 d as a caption.
     private static func moonInfo(
         day: CalendarDay, at instant: Date, engine: any TideEngine
-    ) -> (caption: String?, symbolName: String?) {
-        let symbol = engine.moonPhase(at: instant).systemImageName
+    ) -> (caption: String?, phase: MoonPhase) {
+        let phase = engine.moonPhase(at: instant)
         let events = engine.moonEvents(around: instant)
         let nearest = events.min {
             abs($0.date.timeIntervalSince(instant)) < abs($1.date.timeIntervalSince(instant))
         }
-        guard let nearest else { return (nil, symbol) }
+        guard let nearest else { return (nil, phase) }
         let eventDay = TideTime.calendarDay(of: nearest.date)
         let diff = TideTime.daysBetween(day, eventDay)
-        guard abs(diff) <= 7 else { return (nil, symbol) }
+        guard abs(diff) <= 7 else { return (nil, phase) }
         let caption: String
         switch diff {
         case 0: caption = "\(nearest.kind.captionName) today"
         case 1...: caption = "\(nearest.kind.captionName) in \(diff) d"
         default: caption = "\(nearest.kind.captionName) \(-diff) d ago"
         }
-        return (caption, symbol)
+        return (caption, phase)
     }
 
     /// Next downward threshold crossing from now: scan 10-min samples, refine

@@ -94,6 +94,35 @@ struct ModelTests {
         #expect(threshold.overUntil == nil)
     }
 
+    // MARK: Moon phase (redesign moon row — name, illumination, cycle fraction)
+
+    @Test func moonPhaseExposesNameIlluminationAndFraction() {
+        let model = TideDayModel.make(day: springsDay, engine: engine)
+        #expect(!model.moonPhase.name.isEmpty)
+        #expect((0...1).contains(model.moonPhase.phaseFraction))
+        #expect((0...1).contains(model.moonPhase.illumination))
+        // The header glyph is the same phase's symbol.
+        #expect(model.moonSymbolName == model.moonPhase.systemImageName)
+    }
+
+    @Test func moonPhaseReadsFullNearReferenceFullMoon() {
+        // The synthetic engine anchors a full moon on 19 Jul 2026, so that day
+        // reads nearly fully lit at the model's local-noon sample.
+        let fullMoonDay = CalendarDay(year: 2026, month: 7, day: 19)
+        let model = TideDayModel.make(day: fullMoonDay, engine: engine)
+        #expect(model.moonPhase.illumination > 0.95)
+        #expect(abs(model.moonPhase.phaseFraction - 0.5) < 0.05)
+    }
+
+    @Test func moonPhaseSurvivesRebase() {
+        // `rebased` re-targets now-fields cheaply; the per-day phase carries
+        // through unchanged (widget timeline contract).
+        let now = TideTime.date(springsDay, hour: 13, minute: 0)
+        let base = TideDayModel.make(day: springsDay, engine: engine, now: now)
+        let rebased = base.rebased(now: now.addingTimeInterval(3600), engine: engine)
+        #expect(rebased.moonPhase == base.moonPhase)
+    }
+
     // MARK: Formatters (design doc §3)
 
     @Test func heightUsesThinSpaceAndOneDecimal() {

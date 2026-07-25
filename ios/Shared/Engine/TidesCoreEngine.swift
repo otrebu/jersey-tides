@@ -85,6 +85,8 @@ struct TidesCoreEngine: TideEngine {
         }
         return MoonPhase(
             ageDays: ageDays,
+            phaseFraction: info.phaseAngle / 360,
+            illumination: Double(info.illumination) / 100,
             name: info.name.lowercased(),
             systemImageName: symbolName
         )

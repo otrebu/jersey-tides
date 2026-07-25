@@ -104,7 +104,13 @@ struct SyntheticEngine: TideEngine {
             "moonphase.last.quarter", "moonphase.waning.crescent",
         ]
         let index = Int((age / synodicDays * 8).rounded()) % 8
-        return MoonPhase(ageDays: age, name: names[index], systemImageName: symbols[index])
+        // Same elongation-based lit fraction as the real engine's getMoonPhase.
+        let phaseFraction = age / synodicDays
+        let illumination = (1 - cos(phaseFraction * 2 * Double.pi)) / 2
+        return MoonPhase(
+            ageDays: age, phaseFraction: phaseFraction, illumination: illumination,
+            name: names[index], systemImageName: symbols[index]
+        )
     }
 
     func moonEvents(around instant: Date) -> [MoonEvent] {

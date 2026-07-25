@@ -139,10 +139,14 @@ struct MoonEvent: Equatable, Sendable {
     let kind: MoonEventKind
 }
 
-/// Moon phase at an instant (header glyph + accessibility).
+/// Moon phase at an instant (header glyph + accessibility + moon row).
 struct MoonPhase: Equatable, Sendable {
     /// Age in days since the preceding new moon, `0..<29.53`.
     let ageDays: Double
+    /// Cycle position `0..<1`: 0 new, 0.25 first quarter, 0.5 full, 0.75 last quarter.
+    let phaseFraction: Double
+    /// Illuminated fraction of the disc, `0...1` (0 new, 1 full).
+    let illumination: Double
     /// Human name ("waxing gibbous").
     let name: String
     /// SF Symbol name ("moonphase.waxing.gibbous").

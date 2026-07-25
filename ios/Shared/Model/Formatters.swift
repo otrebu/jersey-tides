@@ -110,6 +110,16 @@ enum TideFormatters {
         noon(day).formatted(dateStyle().weekday(.abbreviated).day())
     }
 
+    /// `"Wednesday"` — weekday name alone (redesign non-today title).
+    static func weekday(_ day: CalendarDay) -> String {
+        noon(day).formatted(dateStyle().weekday(.wide))
+    }
+
+    /// `"24 July"` — day + month, no weekday (redesign non-today subtitle).
+    static func dayMonth(_ day: CalendarDay) -> String {
+        noon(day).formatted(dateStyle().day().month(.wide))
+    }
+
     private static func dateStyle() -> Date.FormatStyle {
         Date.FormatStyle(timeZone: TideTime.timeZone)
     }

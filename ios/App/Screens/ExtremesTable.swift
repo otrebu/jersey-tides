@@ -1,67 +1,86 @@
 import SwiftUI
 
-/// The 4-column extremes table (Almanac graft #3, design doc §5.1):
-/// tag (Engraving-cased small) · time · height · swing, hairline rules between
-/// rows, heights right-aligned tabular.
+/// The extremes table (Almanac graft #3, design doc §5.1; redesign mockup v2
+/// `tableEl`): full-bleed rows edge-to-edge — tag (Engraving-cased small) ·
+/// time · height · swing — separated by hairline rules, with the **next**
+/// extreme carried on a full-bleed `dawn`-tinted highlight band.
 ///
-/// Row emphasis (design doc §5.1): past extremes `seaTertiary`, the **next**
-/// extreme full `sea`, later-future rows `seaSecondary`. `nowInstant == nil`
-/// (non-today page) renders every row `seaSecondary`.
+/// Row emphasis (mockup): on the today page past extremes are `seaTertiary`,
+/// the next extreme full `sea` (and highlighted), later-future rows
+/// `seaSecondary`. `nowInstant == nil` (a non-today page) renders every row
+/// full `sea` — nothing is past or pending, so nothing is dimmed.
 struct ExtremesTable: View {
     let rows: [ExtremeRow]
-    /// Drives row emphasis; nil = non-today page (all rows secondary).
+    /// Drives row emphasis + the highlight; nil = non-today page.
     let nowInstant: Date?
     let units: HeightUnit
     /// App-side time format (design doc §7 #2); widgets keep the default.
     var timeFormat: TimeFormatOption = .system
+    /// Horizontal inset that re-aligns row content with the page margin after
+    /// the parent bleeds the table to the screen edges (mockup `padding 24`).
+    var contentInset: CGFloat = 24
 
     var body: some View {
-        Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 0) {
+        VStack(spacing: 0) {
+            rule // top rule of the table
             ForEach(Array(rows.enumerated()), id: \.offset) { index, row in
-                if index > 0 {
-                    Rectangle()
-                        .fill(Color.hairline)
-                        .frame(height: 0.5)
-                        .gridCellUnsizedAxes(.horizontal)
-                }
-                let color = rowColor(index: index)
-                GridRow {
-                    Text(row.extreme.isHigh ? "HW" : "LW")
-                        .font(TideTypography.engraving)
-                        .tracking(1.4)
-                        .foregroundStyle(color)
-                    Text(TideFormatters.time(row.extreme.time, format: timeFormat))
-                        .tableStyle()
-                        .foregroundStyle(color)
-                    Text(TideFormatters.heightValue(row.extreme.height, unit: units))
-                        .tableStyle()
-                        .gridColumnAlignment(.trailing)
-                        .foregroundStyle(color)
-                    if let swing = row.swing {
-                        // Text arrow + magnitude, converted with the height unit.
-                        Text("\(swing >= 0 ? "↑" : "↓") \(TideFormatters.heightValue(abs(swing), unit: units))")
-                            .tableStyle()
-                            .gridColumnAlignment(.trailing)
-                            .foregroundStyle(swingColor(index: index))
-                    } else {
-                        Text("")
-                    }
-                }
-                .padding(.vertical, 8)
-                .accessibilityElement(children: .combine)
-                .accessibilityLabel(accessibilityText(for: row))
+                rowView(index: index, row: row)
+                rule // rule under every row (last row gets its bottom rule here)
             }
         }
     }
 
-    /// Index of the first not-yet-past row — the "next" extreme.
+    /// 0.5 pt full-bleed hairline (mockup `.exrow` border-top / last border-bottom).
+    private var rule: some View {
+        Rectangle()
+            .fill(Color.hairline)
+            .frame(height: 0.5)
+    }
+
+    private func rowView(index: Int, row: ExtremeRow) -> some View {
+        let color = rowColor(index: index)
+        return HStack(alignment: .firstTextBaseline, spacing: 14) {
+            Text(row.extreme.isHigh ? "HW" : "LW")
+                .font(TideTypography.engraving)
+                .tracking(1.4)
+                .foregroundStyle(color)
+                .frame(width: 30, alignment: .leading)
+            Text(TideFormatters.time(row.extreme.time, format: timeFormat))
+                .tableStyle()
+                .foregroundStyle(color)
+            Spacer(minLength: 8)
+            Text(TideFormatters.height(row.extreme.height, unit: units))
+                .tableStyle()
+                .foregroundStyle(color)
+            // Swing sits smaller (Meta) than the emphasized height, per mockup.
+            Group {
+                if let swing = row.swing {
+                    Text("\(swing >= 0 ? "↑" : "↓") \(TideFormatters.heightValue(abs(swing), unit: units))")
+                } else {
+                    Text("")
+                }
+            }
+            .font(TideTypography.meta)
+            .monospacedDigit()
+            .foregroundStyle(swingColor(index: index))
+            .frame(minWidth: 52, alignment: .trailing)
+        }
+        .padding(.horizontal, contentInset)
+        .padding(.vertical, 11)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(index == nextIndex ? Color.dawn.opacity(0.10) : Color.clear)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(accessibilityText(for: row))
+    }
+
+    /// Index of the first not-yet-past row — the "next" extreme (highlighted).
     private var nextIndex: Int? {
         guard let nowInstant else { return nil }
         return rows.firstIndex { $0.extreme.time >= nowInstant }
     }
 
     private func rowColor(index: Int) -> Color {
-        guard let nowInstant else { return .seaSecondary }
+        guard let nowInstant else { return .sea } // non-today: every row full sea
         if rows[index].extreme.time < nowInstant { return .seaTertiary }
         return index == nextIndex ? .sea : .seaSecondary
     }

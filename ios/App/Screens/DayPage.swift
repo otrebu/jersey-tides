@@ -1,25 +1,38 @@
 import SwiftUI
 
-/// One day's face inside the pager (design doc §5.1): Engraving station header
-/// + gear, Meta date, springs/moon line, hero (next tide + countdown on today;
-/// the day's first HW elsewhere), full-bleed curve, 4-column extremes table,
-/// SUN row, TOMORROW tap-to-page row.
+/// One day's face inside the pager (design doc §5.1, redesign mockup v2).
 ///
-/// Non-today pages hero the day's first HW, drop the now marker (the model
-/// carries `nowInstant == nil`), and show the `‹ TODAY` return chip.
+/// TODAY: an accent `TODAY` eyebrow + big date, subtle station/toolbar row, a
+/// 7-day dot navigator, a NOW-water-level hero (big height + rising/falling
+/// pill over an animated wave band) with a next-event line, the full-bleed
+/// curve, a full-bleed extremes table, the SUN day-band, and the MOON row.
+///
+/// NON-TODAY pages swap the top for a big date header + `‹ Today` chip and drop
+/// the hero + next-event line (the model carries `nowInstant == nil`); they keep
+/// the dots, curve, table, SUN and MOON sections.
 struct DayPage: View {
     let model: TideDayModel
     let isToday: Bool
-    /// App options (design doc §7 table 1); defaults keep the pinned
-    /// `DayPage(model:isToday:)` call sites compiling.
+    /// Signed day offset from today (0 = today) — drives the dot navigator's
+    /// window + the relative-day eyebrow.
+    var dayOffset: Int = 0
+    /// Whether this page is the selected pager page — pauses the hero wave's
+    /// per-frame redraw when the today page is swiped off-screen.
+    var isActivePage: Bool = true
+    /// App options (design doc §7 table 1); defaults keep pinned call sites
+    /// compiling.
     var units: HeightUnit = .metres
     var timeFormat: TimeFormatOption = .system
-    /// Sun events toggle (§7 #3) — hides curve ticks/times and the SUN row.
+    /// Sun events toggle (§7 #3) — hides curve ticks/times only; the SUN
+    /// block is always present (redesign brief: "sunrise and sunset should
+    /// always be present").
     var showsSun: Bool = true
     var onGearTap: () -> Void = {}
     var onTodayTap: () -> Void = {}
+    /// Moon-row tap → the Fortnight (springs + moon events) overview (§5.2).
     var onSpringsTap: () -> Void = {}
-    var onTomorrowTap: () -> Void = {}
+    /// Page to a signed day offset (dot navigator).
+    var onSelectOffset: (Int) -> Void = { _ in }
     /// Tide Watch Live Activity toggle — today page only; nil hides the button.
     var isWatching: Bool = false
     var onWatchTap: (() -> Void)?
@@ -32,14 +45,21 @@ struct DayPage: View {
     @State private var curveProgress: CGFloat = 1
 
     private let margin: CGFloat = 24
+    /// Vertical rhythm between the page's stacked sections (mockup `.app` gap).
+    private let sectionSpacing: CGFloat = 20
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: margin) {
+            VStack(alignment: .leading, spacing: sectionSpacing) {
                 header
-                hero
+                dots
+                if isToday {
+                    heroToday
+                }
                 curve
-                tableBlock
+                tidesBlock
+                sunBlock
+                moonRow
             }
             .padding(margin)
         }
@@ -47,35 +67,74 @@ struct DayPage: View {
         .onAppear(perform: playCurveIntroIfNeeded)
     }
 
-    // MARK: Header — station, gear, date, springs/moon line
+    // MARK: Header — station/toolbar row, eyebrow, big date
 
     private var header: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 12) {
                 Text("St Helier · Jersey").engravingStyle()
                 Spacer()
-                if !isToday {
+                if isToday {
+                    if let onWatchTap {
+                        watchButton(onWatchTap)
+                    }
+                    gearButton
+                } else {
                     todayChip
                 }
-                if isToday, let onWatchTap {
-                    Button(action: onWatchTap) {
-                        Image(systemName: isWatching ? "water.waves" : "water.waves.slash")
-                            .imageScale(.small)
-                            .foregroundStyle(isWatching ? .sea : .seaSecondary)
-                            .contentTransition(.symbolEffect(.replace))
-                    }
-                    .accessibilityLabel(isWatching ? "Stop Tide Watch" : "Start Tide Watch")
-                }
-                Button(action: onGearTap) {
-                    Image(systemName: "gear")
-                        .imageScale(.small)
-                        .foregroundStyle(.seaSecondary)
-                }
-                .accessibilityLabel("Settings")
             }
-            Text(TideFormatters.fullDate(model.day)).metaStyle()
-            springsLine
+            if isToday {
+                Text("Today")
+                    .font(TideTypography.engraving)
+                    .textCase(.uppercase)
+                    .tracking(1.4)
+                    .foregroundStyle(.dawn) // accent eyebrow
+                Text(TideFormatters.fullDate(model.day))
+                    .font(dateTitleFont)
+                    .foregroundStyle(.sea)
+            } else {
+                Text(relativeLabel).engravingStyle()
+                Text(TideFormatters.weekday(model.day))
+                    .font(dateTitleFont)
+                    .foregroundStyle(.sea)
+                Text(TideFormatters.dayMonth(model.day)).metaStyle()
+            }
         }
+    }
+
+    /// Big date / weekday header — `.title` at light weight (mockup 27 pt/300).
+    private var dateTitleFont: Font {
+        .system(.title, design: .default).weight(.light)
+    }
+
+    /// `Tomorrow` / `Yesterday` / `In N days` / `N days ago` (mockup
+    /// `relativeLabel`); non-today only, so the 0 case never shows.
+    private var relativeLabel: String {
+        switch dayOffset {
+        case 1: return "Tomorrow"
+        case -1: return "Yesterday"
+        case let delta where delta > 0: return "In \(delta) days"
+        default: return "\(-dayOffset) days ago"
+        }
+    }
+
+    private func watchButton(_ action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: isWatching ? "water.waves" : "water.waves.slash")
+                .imageScale(.small)
+                .foregroundStyle(isWatching ? .sea : .seaSecondary)
+                .contentTransition(.symbolEffect(.replace))
+        }
+        .accessibilityLabel(isWatching ? "Stop Tide Watch" : "Start Tide Watch")
+    }
+
+    private var gearButton: some View {
+        Button(action: onGearTap) {
+            Image(systemName: "gear")
+                .imageScale(.small)
+                .foregroundStyle(.seaSecondary)
+        }
+        .accessibilityLabel("Settings")
     }
 
     /// `‹ TODAY` return chip — capsule with `.glassEffect()` (min OS 26, §5.1).
@@ -94,104 +153,141 @@ struct DayPage: View {
         .accessibilityLabel("Back to today")
     }
 
-    /// `● SPRINGS · full moon in 2 d` — Meta; moon glyph in dawn. Tap opens
-    /// the Fortnight sheet (§5.2). Omitted entirely when there is nothing to say.
-    @ViewBuilder
-    private var springsLine: some View {
-        let label = model.springs.map { $0 == .springs ? "SPRINGS" : "NEAPS" }
-        let caption = [label, model.moonCaption].compactMap(\.self).joined(separator: " · ")
-        if !caption.isEmpty {
-            Button(action: onSpringsTap) {
-                HStack(spacing: 6) {
-                    if let symbol = model.moonSymbolName {
-                        Image(systemName: symbol)
-                            .imageScale(.small)
-                            .foregroundStyle(.dawn)
+    // MARK: Day dots — 7-day window navigator (mockup `dotsEl`)
+
+    private var dots: some View {
+        let radius = 3
+        let count = radius * 2 + 1 // 7-day window
+        // Rolling window that always contains the current page; clamped so the
+        // 7 dots stay inside the ±pageRadius pager bounds.
+        let start = min(
+            max(dayOffset - radius, -DeepLink.pageRadius),
+            DeepLink.pageRadius - (count - 1)
+        )
+        return HStack(spacing: 9) {
+            ForEach(0..<count, id: \.self) { index in
+                dot(offset: start + index)
+            }
+        }
+        .padding(.top, 2)
+    }
+
+    private func dot(offset: Int) -> some View {
+        let isCurrent = offset == dayOffset
+        let isTodayDot = offset == 0
+        let color: Color = isCurrent ? (isTodayDot ? .dawn : .sea) : .seaTertiary
+        return Button {
+            onSelectOffset(offset)
+        } label: {
+            Capsule()
+                .fill(color)
+                .frame(width: isCurrent ? 22 : 7, height: 7)
+                .overlay {
+                    // Today marker (when not the current pill): a haloing ring.
+                    if isTodayDot, !isCurrent {
+                        Circle()
+                            .strokeBorder(Color.seaTertiary, lineWidth: 1.5)
+                            .frame(width: 13, height: 13)
                     }
-                    Text(caption).metaStyle()
                 }
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Fortnight overview. \(caption.capitalized)")
+                .frame(height: 16) // enlarge the vertical hit target
+                .contentShape(Rectangle())
         }
+        .buttonStyle(.plain)
+        .accessibilityLabel(dotAccessibilityLabel(offset: offset, isCurrent: isCurrent))
     }
 
-    // MARK: Hero
-
-    @ViewBuilder
-    private var hero: some View {
-        if isToday {
-            todayHero
-        } else {
-            firstHighHero
-        }
+    private func dotAccessibilityLabel(offset: Int, isCurrent: Bool) -> String {
+        let dotDay = TideTime.addDays(model.day, offset - dayOffset)
+        let label = "\(TideFormatters.weekday(dotDay)) \(TideFormatters.dayMonth(dotDay))"
+        return isCurrent ? "\(label), selected" : label
     }
 
-    /// NEXT HIGH WATER · 14:32 · 11.2 m · in 2 h 08 m · now 8.4 m ▲ rising.
+    // MARK: Hero — NOW water level (today only)
+
     @ViewBuilder
-    private var todayHero: some View {
-        if let next = model.nextExtreme, let now = model.nowInstant {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(next.isHigh ? "Next high water" : "Next low water")
-                    .engravingStyle()
-                Text(TideFormatters.time(next.time, format: timeFormat))
-                    .font(TideTypography.dial(size: clampedDialSize))
-                    .foregroundStyle(.sea)
-                    .contentTransition(.numericText())
-                Text(
-                    "\(TideFormatters.height(next.height, unit: units)) · \(TideFormatters.countdown(to: next.time, from: now))"
-                )
-                .tableStyle()
-                .foregroundStyle(.seaSecondary)
-                .contentTransition(.numericText())
-                nowLine
-                    .padding(.top, 8)
+    private var heroToday: some View {
+        if let height = model.currentHeight, let rising = model.isRising,
+           let next = model.nextExtreme, let now = model.nowInstant {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Now · water level").engravingStyle()
+                HStack(alignment: .center, spacing: 8) {
+                    HStack(alignment: .firstTextBaseline, spacing: 4) {
+                        Text(TideFormatters.heightValue(height, unit: units))
+                            .font(TideTypography.dial(size: clampedDialSize))
+                            .foregroundStyle(.sea)
+                            .contentTransition(.numericText())
+                        Text(TideFormatters.unitSymbol(units))
+                            .font(TideTypography.unit(parentSize: clampedDialSize))
+                            .foregroundStyle(.seaSecondary)
+                    }
+                    trendPill(rising: rising)
+                }
+                nextEventLine(next: next, now: now)
+                    .padding(.top, 6)
             }
+            .padding(.horizontal, margin)
+            .padding(.top, 6)
+            .padding(.bottom, 4)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(WaveBand(rising: rising, isActive: isActivePage)) // full-bleed wave behind the number
+            .padding(.horizontal, -margin)
             .accessibilityElement(children: .combine)
-        }
-    }
-
-    /// `now 8.4 m ▲ rising` — Meta, sea; arrow SF symbol at small scale (§3).
-    @ViewBuilder
-    private var nowLine: some View {
-        if let height = model.currentHeight, let rising = model.isRising {
-            HStack(spacing: 5) {
-                Text("now \(TideFormatters.height(height, unit: units))")
-                    .contentTransition(.numericText())
-                Image(systemName: rising ? "arrowtriangle.up.fill" : "arrowtriangle.down.fill")
-                    .imageScale(.small)
-                    .scaleEffect(0.6)
-                Text(rising ? "rising" : "falling")
-            }
-            .font(TideTypography.meta)
-            .foregroundStyle(.sea)
             .accessibilityLabel(
-                "Now \(TideFormatters.height(height, unit: units)), \(rising ? "rising" : "falling")"
+                heroAccessibilityLabel(height: height, rising: rising, next: next, now: now)
             )
         }
     }
 
-    /// Non-today hero: the day's first HW as `HW 03:02` in Dial, no countdown.
-    @ViewBuilder
-    private var firstHighHero: some View {
-        if let first = model.extremes.first(where: \.isHigh) ?? model.extremes.first {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(first.isHigh ? "High water" : "Low water").engravingStyle()
-                HStack(alignment: .firstTextBaseline, spacing: 10) {
-                    Text(first.isHigh ? "HW" : "LW")
-                        .font(TideTypography.unit(parentSize: clampedDialSize))
-                        .foregroundStyle(.seaSecondary)
-                    Text(TideFormatters.time(first.time, format: timeFormat))
-                        .font(TideTypography.dial(size: clampedDialSize))
-                        .foregroundStyle(.sea)
-                        .contentTransition(.numericText())
-                }
-                Text(TideFormatters.height(first.height, unit: units))
-                    .tableStyle()
-                    .foregroundStyle(.seaSecondary)
-            }
-            .accessibilityElement(children: .combine)
+    /// `▲ RISING` / `▼ FALLING` capsule — dawn triangle + engraved caption on a
+    /// faint `sea` chip (mockup `.trend`).
+    private func trendPill(rising: Bool) -> some View {
+        HStack(spacing: 5) {
+            Image(systemName: rising ? "arrowtriangle.up.fill" : "arrowtriangle.down.fill")
+                .font(.system(size: 8))
+                .foregroundStyle(.dawn)
+            Text(rising ? "Rising" : "Falling")
+                .font(TideTypography.engraving)
+                .textCase(.uppercase)
+                .tracking(0.8)
+                .foregroundStyle(.seaSecondary)
         }
+        .padding(.horizontal, 9)
+        .padding(.vertical, 4)
+        .background(Capsule().fill(Color.sea.opacity(0.06)))
+        .overlay(Capsule().strokeBorder(Color.sea.opacity(0.16), lineWidth: 0.5))
+        .accessibilityHidden(true) // the hero label already states the trend
+    }
+
+    /// `Next high water 7.9 m · 15:11 · in 1 h 26 m` (mockup `.hero-next`):
+    /// the event bold in `sea`, the rest `seaSecondary`, dot separators tertiary.
+    private func nextEventLine(next: TideExtreme, now: Date) -> some View {
+        let label = next.isHigh ? "high water" : "low water"
+        let heightStr = TideFormatters.height(next.height, unit: units)
+        let timeStr = TideFormatters.time(next.time, format: timeFormat)
+        let countdown = TideFormatters.countdown(to: next.time, from: now)
+        return (
+            Text("Next ").foregroundStyle(.seaSecondary)
+                + Text("\(label) \(heightStr)").foregroundStyle(.sea).fontWeight(.medium)
+                + Text(" · ").foregroundStyle(.seaTertiary)
+                + Text(timeStr).foregroundStyle(.seaSecondary)
+                + Text(" · ").foregroundStyle(.seaTertiary)
+                + Text(countdown).foregroundStyle(.seaSecondary)
+        )
+        .font(TideTypography.table)
+        .contentTransition(.numericText())
+    }
+
+    private func heroAccessibilityLabel(
+        height: Double, rising: Bool, next: TideExtreme, now: Date
+    ) -> String {
+        let level = TideFormatters.height(height, unit: units)
+        let trend = rising ? "rising" : "falling"
+        let kind = next.isHigh ? "high water" : "low water"
+        let nextHeight = TideFormatters.height(next.height, unit: units)
+        let nextTime = TideFormatters.time(next.time, format: timeFormat)
+        let countdown = TideFormatters.countdown(to: next.time, from: now)
+        return "Now \(level), \(trend). Next \(kind) \(nextHeight) at \(nextTime), \(countdown)."
     }
 
     private var clampedDialSize: CGFloat {
@@ -237,79 +333,49 @@ struct DayPage: View {
         }
     }
 
-    // MARK: Table block — TODAY · extremes · SUN · TOMORROW
+    // MARK: Tides — full-bleed extremes table
 
-    private var tableBlock: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(isToday ? "Today" : TideFormatters.shortDate(model.day))
-                .engravingStyle()
+    private var tidesBlock: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("Tides").engravingStyle()
             ExtremesTable(
                 rows: model.rows,
                 nowInstant: model.nowInstant,
                 units: units,
-                timeFormat: timeFormat
+                timeFormat: timeFormat,
+                contentInset: margin
             )
-            if showsSun {
-                sunRow
-            }
-            tomorrowRow
+            .padding(.horizontal, -margin) // full-bleed rows + highlight
         }
     }
 
-    /// `SUN 06:04 → 21:12 · 15 h 08` — Meta, two small dawn tick glyphs inline.
+    // MARK: Sun — day-band + summary row (mockup `sunEl`)
+
     @ViewBuilder
-    private var sunRow: some View {
-        if let sun = model.sun, let sunrise = sun.sunrise, let sunset = sun.sunset {
-            HStack(spacing: 6) {
-                Text("SUN")
-                    .font(TideTypography.engraving)
-                    .tracking(1.4)
-                    .foregroundStyle(.seaSecondary)
-                sunTick
-                Text(TideFormatters.time(sunrise, format: timeFormat))
-                Text("→").foregroundStyle(.seaTertiary)
-                sunTick
-                Text(TideFormatters.time(sunset, format: timeFormat))
-                if let length = sun.dayLength {
-                    Text("· \(TideFormatters.dayLength(length))")
-                }
+    private var sunBlock: some View {
+        if let sun = model.sun,
+           let band = DaylightBand(sun: sun, now: model.nowInstant, timeFormat: timeFormat),
+           let row = DaylightSummaryRow(sun: sun, timeFormat: timeFormat) {
+            VStack(alignment: .leading, spacing: 9) {
+                Text("Sun").engravingStyle()
+                band.padding(.horizontal, -margin) // full-bleed 24 h track
+                row
             }
-            .font(TideTypography.meta)
-            .foregroundStyle(.seaSecondary)
-            .accessibilityElement(children: .combine)
-            .accessibilityLabel(
-                "Sunrise \(TideFormatters.time(sunrise, format: timeFormat)), sunset \(TideFormatters.time(sunset, format: timeFormat))"
+        }
+    }
+
+    // MARK: Moon — phase row (tap opens the Fortnight overview)
+
+    private var moonRow: some View {
+        Button(action: onSpringsTap) {
+            MoonPhaseRow(
+                name: model.moonPhase.name.capitalized,
+                illuminatedFraction: model.moonPhase.illumination,
+                waxing: model.moonPhase.phaseFraction < 0.5
             )
         }
-    }
-
-    /// 1 pt dawn vertical, 7 pt tall — the curve's sun tick, quoted inline (§5.1).
-    private var sunTick: some View {
-        Rectangle()
-            .fill(Color.dawn)
-            .frame(width: 1, height: 7)
-    }
-
-    /// `TOMORROW  HW 03:02 · LW 09:15` — Meta seaSecondary; tap = page forward.
-    @ViewBuilder
-    private var tomorrowRow: some View {
-        if let tomorrow = model.tomorrow {
-            let parts = [
-                tomorrow.firstHigh.map { "HW \(TideFormatters.time($0.time, format: timeFormat))" },
-                tomorrow.firstLow.map { "LW \(TideFormatters.time($0.time, format: timeFormat))" },
-            ].compactMap(\.self)
-            if !parts.isEmpty {
-                Button(action: onTomorrowTap) {
-                    HStack(spacing: 12) {
-                        Text("Tomorrow").engravingStyle()
-                        Text(parts.joined(separator: " · "))
-                            .metaStyle()
-                    }
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Tomorrow: \(parts.joined(separator: ", ")). Opens tomorrow's page.")
-            }
-        }
+        .buttonStyle(.plain)
+        .accessibilityHint("Opens the fortnight overview")
     }
 }
 

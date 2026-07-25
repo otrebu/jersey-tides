@@ -69,6 +69,28 @@ struct AlmanacParityTests {
         }
     }
 
+    /// `getMoonPhase` at each golden quadrature instant reads the matching
+    /// principal phase: full ≈ fully lit, new ≈ dark, quarters ≈ half lit.
+    /// Guards the `illumination`/`name` fields the redesign's moon row surfaces.
+    @Test func moonPhaseIlluminationMatchesEvents() throws {
+        let fixture: AlmanacFixture = try Fixtures.load("almanac.json")
+        for event in fixture.moonEvents {
+            let phase = getMoonPhase(Fixtures.date(event.utc))
+            switch event.type {
+            case "full":
+                #expect(phase.name == "Full Moon", "at \(event.utc)")
+                #expect(phase.illumination >= 99, "full illumination at \(event.utc)")
+            case "new":
+                #expect(phase.name == "New Moon", "at \(event.utc)")
+                #expect(phase.illumination <= 1, "new illumination at \(event.utc)")
+            case "first_quarter", "last_quarter":
+                #expect(abs(phase.illumination - 50) <= 2, "quarter illumination at \(event.utc)")
+            default:
+                Issue.record("unexpected moon event type \(event.type)")
+            }
+        }
+    }
+
     private func expectNullableInstant(_ got: Date?, _ want: String?, _ label: String) {
         guard let want else {
             #expect(got == nil, "\(label): expected nil")

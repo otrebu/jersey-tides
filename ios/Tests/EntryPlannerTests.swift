@@ -206,7 +206,10 @@ private struct BrokenEngine: TideEngine {
     func timeline(_ day: CalendarDay, samplesPerHour: Int) -> [TimelinePoint] { [] }
     func sunTimes(_ day: CalendarDay) -> SunTimes? { nil }
     func moonPhase(at instant: Date) -> MoonPhase {
-        MoonPhase(ageDays: 0, name: "new moon", systemImageName: "moonphase.new.moon")
+        MoonPhase(
+            ageDays: 0, phaseFraction: 0, illumination: 0,
+            name: "new moon", systemImageName: "moonphase.new.moon"
+        )
     }
     func moonEvents(around instant: Date) -> [MoonEvent] { [] }
 }
