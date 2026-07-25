@@ -1,0 +1,676 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jersey Tides — main screen (baseline mockup)</title>
+
+<!--
+  Jersey Tides — main iPhone screen · BASELINE MOCKUP
+  Faithful 1:1 rebuild of the current SwiftUI design (ios/App/Screens/DayPage.swift
+  + ios/Shared/Curve/TideCurveView.swift + Tokens/Typography). Fidelity over beauty:
+  nothing here is an "improvement" on the app — every value is cited to the Swift source.
+  All tide text + the SVG curve render from the embedded DATA object, so data stays swappable.
+-->
+
+<style>
+/* ============================================================================
+   DESIGN TOKENS  — one-line edits for review iterations
+   Colours: Tokens.swift · Type: Typography.swift · Metrics: DayPage/TideCurveView
+   ========================================================================== */
+:root {
+  /* --- App palette · LIGHT (Tokens.swift base hexes + opacity derivatives) --- */
+  --sky:            #F4F6F6;                 /* screen + page background            */
+  --sea:            #102530;                 /* primary ink, numerals, curve, markers */
+  --sea-secondary:  rgba(16,37,48,0.55);     /* labels, dates, heights, swing col   */
+  --sea-tertiary:   rgba(16,37,48,0.30);     /* now-line, past rows, de-emphasis     */
+  --hairline:       rgba(16,37,48,0.14);     /* horizon line, table rules            */
+  --dawn:           #B97E3D;                 /* sun ticks/times, moon glyph          */
+  --fill-top-op:    0.08;                    /* under-curve gradient top stop opacity */
+
+  /* --- Review-canvas neutrals (outside the phone; not part of the app) --- */
+  --page-bg:        #E6E9EB;
+  --page-fg:        #566069;
+  --bezel:          #0b0e0f;
+  --bezel-edge:     #23282b;
+
+  /* --- Type roles (SF system family; sizes = SwiftUI default Dynamic Type pt) --- */
+  --font-ui:   -apple-system, "SF Pro Text", "SF Pro Display", system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+  --fs-dial:      84px;   /* Dial   — hero time, ultraLight, clamp 64–96 → 84       */
+  --fs-unit:      31.92px;/* Unit   — 0.38 × dial (HW/LW beside dial)               */
+  --fs-engraving: 11px;   /* Engraving — caption2 semibold, uppercase, tracking 1.4 */
+  --fs-table:     16px;   /* Table  — callout, tabular digits                       */
+  --fs-meta:      13px;   /* Meta   — footnote (dates, sun, now-line)               */
+  --fs-chart:     11px;   /* chartTime/chartHeight — caption2 monospaced            */
+  --track:        1.4px;  /* engraving tracking                                     */
+
+  /* --- Layout metrics (points → px) --- */
+  --screen-w:     393px;
+  --screen-h:     852px;
+  --safe-top:     59px;   /* iPhone 15 Pro top safe-area inset                      */
+  --margin:       24px;   /* DayPage page padding + main VStack spacing             */
+  --radius-screen: 47px;
+  --radius-device: 56px;
+}
+
+/* prefers-color-scheme carries the OS default; the toggle stamps data-theme, which wins. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --sky:            #0B1417;
+    --sea:            #E9EFF1;
+    --sea-secondary:  rgba(233,239,241,0.55);
+    --sea-tertiary:   rgba(233,239,241,0.30);
+    --hairline:       rgba(233,239,241,0.14);
+    --dawn:           #E2AE6B;
+    --fill-top-op:    0.09;
+    --page-bg:        #04080A;
+    --page-fg:        #7A868F;
+    --bezel:          #000000;
+    --bezel-edge:     #191d1f;
+  }
+}
+:root[data-theme="light"] {
+  --sky:#F4F6F6; --sea:#102530;
+  --sea-secondary:rgba(16,37,48,0.55); --sea-tertiary:rgba(16,37,48,0.30);
+  --hairline:rgba(16,37,48,0.14); --dawn:#B97E3D; --fill-top-op:0.08;
+  --page-bg:#E6E9EB; --page-fg:#566069; --bezel:#0b0e0f; --bezel-edge:#23282b;
+}
+:root[data-theme="dark"] {
+  --sky:#0B1417; --sea:#E9EFF1;
+  --sea-secondary:rgba(233,239,241,0.55); --sea-tertiary:rgba(233,239,241,0.30);
+  --hairline:rgba(233,239,241,0.14); --dawn:#E2AE6B; --fill-top-op:0.09;
+  --page-bg:#04080A; --page-fg:#7A868F; --bezel:#000000; --bezel-edge:#191d1f;
+}
+
+/* ============================================================================
+   REVIEW CANVAS
+   ========================================================================== */
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  font-family: var(--font-ui);
+  background: var(--page-bg);
+  color: var(--page-fg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 18px;
+  padding: 40px 16px;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.theme-toggle {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  z-index: 50;
+  font: 600 12px var(--font-ui);
+  letter-spacing: 0.02em;
+  color: var(--page-fg);
+  background: color-mix(in srgb, var(--page-bg) 70%, transparent);
+  border: 1px solid color-mix(in srgb, var(--page-fg) 35%, transparent);
+  border-radius: 999px;
+  padding: 7px 13px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.theme-toggle:focus-visible { outline: 2px solid var(--dawn); outline-offset: 2px; }
+.theme-toggle svg { width: 14px; height: 14px; }
+
+.caption {
+  font: 400 12.5px var(--font-ui);
+  color: var(--page-fg);
+  letter-spacing: 0.01em;
+  text-align: center;
+}
+
+/* ============================================================================
+   DEVICE CHROME
+   ========================================================================== */
+.device {
+  width: calc(var(--screen-w) + 24px);
+  height: calc(var(--screen-h) + 24px);
+  background: var(--bezel);
+  border: 1px solid var(--bezel-edge);
+  border-radius: var(--radius-device);
+  padding: 12px;
+  box-shadow: 0 30px 70px -30px rgba(0,0,0,0.55), 0 2px 6px rgba(0,0,0,0.3);
+}
+.screen {
+  position: relative;
+  width: var(--screen-w);
+  height: var(--screen-h);
+  border-radius: var(--radius-screen);
+  overflow: hidden;
+  background: var(--sky);          /* Color.sky, edge-to-edge (ignoresSafeArea) */
+}
+
+/* Dynamic Island + status bar sit above the app content, pinned. */
+.island {
+  position: absolute;
+  top: 11px; left: 50%;
+  transform: translateX(-50%);
+  width: 125px; height: 37px;
+  background: #000;
+  border-radius: 20px;
+  z-index: 20;
+}
+.statusbar {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 54px;
+  z-index: 15;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 30px 0 34px;
+  color: var(--sea);
+  pointer-events: none;
+}
+.statusbar .clock {
+  font: 600 15px var(--font-ui);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  padding-top: 2px;
+}
+.statusbar .indicators { display: flex; align-items: center; gap: 6px; }
+.statusbar .indicators svg { display: block; fill: currentColor; }
+
+/* Scroll viewport = the DayPage ScrollView. */
+.viewport {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+.viewport::-webkit-scrollbar { width: 0; height: 0; }
+
+/* ============================================================================
+   APP CONTENT  (VStack .leading, spacing 24, padding 24)
+   ========================================================================== */
+.app {
+  padding: var(--margin);
+  padding-top: calc(var(--safe-top) + var(--margin));
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--margin);
+  color: var(--sea);
+}
+
+/* --- Header: spacing 6 --- */
+.header { display: flex; flex-direction: column; gap: 6px; width: 100%; }
+.header .row1 { display: flex; align-items: center; gap: 12px; }
+.station {
+  font: 600 var(--fs-engraving)/1 var(--font-ui);
+  text-transform: uppercase;
+  letter-spacing: var(--track);
+  color: var(--sea-secondary);
+}
+.header .spacer { flex: 1; }
+.iconbtn {
+  color: var(--sea-secondary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.iconbtn svg { width: 16px; height: 16px; }
+.date { font: 400 var(--fs-meta)/1.2 var(--font-ui); color: var(--sea-secondary); }
+
+/* --- Hero (today): spacing 4 --- */
+.hero { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+.eyebrow {
+  font: 600 var(--fs-engraving)/1 var(--font-ui);
+  text-transform: uppercase;
+  letter-spacing: var(--track);
+  color: var(--sea-secondary);
+}
+.hero-time {
+  font: 100 var(--fs-dial)/1 var(--font-ui);
+  color: var(--sea);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+.hero-sub {
+  font: 400 var(--fs-table)/1.2 var(--font-ui);
+  color: var(--sea-secondary);
+  font-variant-numeric: tabular-nums;
+}
+.nowline {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font: 400 var(--fs-meta)/1 var(--font-ui);
+  color: var(--sea);
+  font-variant-numeric: tabular-nums;
+}
+.nowline .tri { width: 8px; height: 8px; color: var(--sea); display: block; }
+.nowline .tri svg { width: 100%; height: 100%; fill: currentColor; }
+
+/* --- Curve: full-bleed (breaks the 24 padding), 200 tall --- */
+.curve { width: calc(100% + 48px); margin: 0 -24px; }
+.curve svg { display: block; width: 100%; height: auto; }
+
+/* --- Table block: spacing 12 --- */
+.tableblock { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; width: 100%; }
+
+.extremes {
+  display: grid;
+  grid-template-columns: max-content max-content max-content max-content;
+  align-items: baseline;
+  column-gap: 16px;
+  width: 100%;
+}
+.extremes .tag {
+  font: 600 var(--fs-engraving) var(--font-ui);
+  letter-spacing: var(--track);
+  padding: 8px 0;
+}
+.extremes .cell {
+  font: 400 var(--fs-table) var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  padding: 8px 0;
+}
+.extremes .num  { text-align: right; }
+.extremes .rule {
+  grid-column: 1 / -1;
+  height: 0.5px;
+  background: var(--hairline);
+}
+
+.sunrow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font: 400 var(--fs-meta) var(--font-ui);
+  color: var(--sea-secondary);
+  font-variant-numeric: tabular-nums;
+  flex-wrap: wrap;
+}
+.sunrow .sun-label {
+  font: 600 var(--fs-engraving) var(--font-ui);
+  letter-spacing: var(--track);
+  color: var(--sea-secondary);
+}
+.sunrow .tick { width: 1px; height: 7px; background: var(--dawn); display: inline-block; }
+.sunrow .arrow { color: var(--sea-tertiary); }
+
+/* --- SVG curve element classes (all colours flow from tokens → theme-safe) --- */
+.c-fill-top    { stop-color: var(--sea); stop-opacity: var(--fill-top-op); }
+.c-fill-bottom { stop-color: var(--sea); stop-opacity: 0; }
+.c-horizon     { stroke: var(--hairline); }
+.c-knockout    { fill: var(--sky); }
+.c-tick        { stroke: var(--dawn); }
+.c-nowline     { stroke: var(--sea-tertiary); }
+.c-stroke      { stroke: var(--sea); fill: none; }
+.c-hw          { fill: var(--sea); }
+.c-lw          { stroke: var(--sea); fill: none; }
+.c-nowdot      { fill: var(--sea); }
+.svg-horizon   { font: 400 var(--fs-meta) var(--font-ui);  fill: var(--sea-secondary); }
+.svg-sun       { font: 400 var(--fs-meta) var(--font-ui);  fill: var(--dawn); }
+.svg-ctime     { font: 600 var(--fs-chart) var(--font-mono); fill: var(--sea); }
+.svg-cheight   { font: 400 var(--fs-chart) var(--font-mono); fill: var(--sea-secondary); }
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+
+<button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle light or dark theme">
+  <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"></svg>
+  <span id="themeLabel">Theme</span>
+</button>
+
+<div class="device">
+  <div class="screen">
+    <div class="island"></div>
+    <div class="statusbar">
+      <span class="clock" id="clock">12:51</span>
+      <span class="indicators">
+        <!-- signal -->
+        <svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="0.6"/><rect x="5" y="5.5" width="3" height="6.5" rx="0.6"/><rect x="10" y="3" width="3" height="9" rx="0.6"/><rect x="15" y="0.5" width="3" height="11.5" rx="0.6"/></svg>
+        <!-- wifi -->
+        <svg width="17" height="12" viewBox="0 0 17 12"><path d="M8.5 2.2c2.7 0 5.2 1 7 2.8l-1.5 1.6C12.6 5.2 10.6 4.4 8.5 4.4S4.4 5.2 3 6.6L1.5 5C3.3 3.2 5.8 2.2 8.5 2.2z"/><path d="M8.5 6.1c1.6 0 3.1.6 4.2 1.7l-1.6 1.6c-.7-.7-1.6-1.1-2.6-1.1s-1.9.4-2.6 1.1L4.3 7.8C5.4 6.7 6.9 6.1 8.5 6.1z"/><circle cx="8.5" cy="10.4" r="1.4"/></svg>
+        <!-- battery -->
+        <svg width="26" height="13" viewBox="0 0 26 13"><rect x="0.6" y="0.6" width="22" height="11.8" rx="3" fill="none" stroke="currentColor" stroke-opacity="0.5" stroke-width="1"/><rect x="2.2" y="2.2" width="16" height="8.6" rx="1.6"/><rect x="24" y="4" width="1.6" height="5" rx="0.8" fill-opacity="0.5"/></svg>
+      </span>
+    </div>
+
+    <div class="viewport">
+      <div class="app">
+        <!-- Header -->
+        <div class="header">
+          <div class="row1">
+            <span class="station">St Helier · Jersey</span>
+            <span class="spacer"></span>
+            <!-- Tide-Watch button (today, idle → water.waves.slash, seaSecondary) -->
+            <span class="iconbtn" title="Start Tide Watch" aria-label="Start Tide Watch">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2 9c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/>
+                <path d="M2 15c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/>
+                <line x1="4.5" y1="20.5" x2="19.5" y2="3.5" stroke-width="1.8"/>
+              </svg>
+            </span>
+            <!-- Gear button (Settings, seaSecondary) -->
+            <span class="iconbtn" title="Settings" aria-label="Settings">
+              <svg viewBox="0 0 24 24">
+                <g fill="currentColor">
+                  <g id="gearteeth"></g>
+                  <circle cx="12" cy="12" r="6"/>
+                </g>
+                <circle cx="12" cy="12" r="2.5" fill="var(--sky)"/>
+              </svg>
+            </span>
+          </div>
+          <div class="date" id="date">Friday 24 July</div>
+          <!-- springs / moon line: omitted — the source data carries neither springs
+               classification nor a moon caption, and DayPage drops the row when both are nil. -->
+        </div>
+
+        <!-- Hero (today) -->
+        <div class="hero" id="hero"></div>
+
+        <!-- Curve (full-bleed, 200pt) -->
+        <div class="curve"><svg id="curveSvg" viewBox="0 0 393 200" xmlns="http://www.w3.org/2000/svg"></svg></div>
+
+        <!-- Table block -->
+        <div class="tableblock">
+          <div class="eyebrow">Today</div>
+          <div class="extremes" id="extremes"></div>
+          <div class="sunrow" id="sunrow"></div>
+          <!-- TOMORROW row: omitted — the source data carries no `tomorrow` preview,
+               and DayPage omits the row when there is nothing to show. -->
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="caption">Jersey Tides — main screen · baseline mockup (matches current app)</div>
+
+<script>
+/* ------------------------------------------------------------------------
+   REAL TIDE DATA (St Helier · 2026-07-24). Swap this object to re-render.
+   ------------------------------------------------------------------------ */
+const DATA = {
+  "events":[{"type":"high","time":"02:22","height":7.8},{"type":"low","time":"09:01","height":4.4},{"type":"high","time":"15:11","height":7.9},{"type":"low","time":"21:46","height":4.3}],
+  "curve":[{"t":"00:00","h":6.59},{"t":"00:10","h":6.74},{"t":"00:20","h":6.88},{"t":"00:30","h":7.02},{"t":"00:40","h":7.14},{"t":"00:50","h":7.25},{"t":"01:00","h":7.36},{"t":"01:10","h":7.45},{"t":"01:20","h":7.53},{"t":"01:30","h":7.6},{"t":"01:40","h":7.66},{"t":"01:50","h":7.7},{"t":"02:00","h":7.73},{"t":"02:10","h":7.75},{"t":"02:20","h":7.76},{"t":"02:30","h":7.76},{"t":"02:40","h":7.75},{"t":"02:50","h":7.72},{"t":"03:00","h":7.69},{"t":"03:10","h":7.65},{"t":"03:20","h":7.6},{"t":"03:30","h":7.55},{"t":"03:40","h":7.48},{"t":"03:50","h":7.41},{"t":"04:00","h":7.33},{"t":"04:10","h":7.24},{"t":"04:20","h":7.14},{"t":"04:30","h":7.04},{"t":"04:40","h":6.92},{"t":"04:50","h":6.8},{"t":"05:00","h":6.67},{"t":"05:10","h":6.53},{"t":"05:20","h":6.4},{"t":"05:30","h":6.26},{"t":"05:40","h":6.11},{"t":"05:50","h":5.97},{"t":"06:00","h":5.84},{"t":"06:10","h":5.7},{"t":"06:20","h":5.57},{"t":"06:30","h":5.45},{"t":"06:40","h":5.33},{"t":"06:50","h":5.22},{"t":"07:00","h":5.11},{"t":"07:10","h":5.01},{"t":"07:20","h":4.91},{"t":"07:30","h":4.83},{"t":"07:40","h":4.75},{"t":"07:50","h":4.68},{"t":"08:00","h":4.62},{"t":"08:10","h":4.57},{"t":"08:20","h":4.52},{"t":"08:30","h":4.49},{"t":"08:40","h":4.47},{"t":"08:50","h":4.45},{"t":"09:00","h":4.45},{"t":"09:10","h":4.45},{"t":"09:20","h":4.46},{"t":"09:30","h":4.48},{"t":"09:40","h":4.51},{"t":"09:50","h":4.55},{"t":"10:00","h":4.6},{"t":"10:10","h":4.66},{"t":"10:20","h":4.73},{"t":"10:30","h":4.81},{"t":"10:40","h":4.91},{"t":"10:50","h":5.01},{"t":"11:00","h":5.13},{"t":"11:10","h":5.26},{"t":"11:20","h":5.4},{"t":"11:30","h":5.54},{"t":"11:40","h":5.7},{"t":"11:50","h":5.85},{"t":"12:00","h":6.01},{"t":"12:10","h":6.16},{"t":"12:20","h":6.32},{"t":"12:30","h":6.47},{"t":"12:40","h":6.62},{"t":"12:50","h":6.76},{"t":"13:00","h":6.9},{"t":"13:10","h":7.03},{"t":"13:20","h":7.16},{"t":"13:30","h":7.28},{"t":"13:40","h":7.38},{"t":"13:50","h":7.48},{"t":"14:00","h":7.58},{"t":"14:10","h":7.65},{"t":"14:20","h":7.72},{"t":"14:30","h":7.78},{"t":"14:40","h":7.82},{"t":"14:50","h":7.85},{"t":"15:00","h":7.87},{"t":"15:10","h":7.88},{"t":"15:20","h":7.87},{"t":"15:30","h":7.86},{"t":"15:40","h":7.84},{"t":"15:50","h":7.8},{"t":"16:00","h":7.76},{"t":"16:10","h":7.71},{"t":"16:20","h":7.64},{"t":"16:30","h":7.57},{"t":"16:40","h":7.49},{"t":"16:50","h":7.4},{"t":"17:00","h":7.29},{"t":"17:10","h":7.18},{"t":"17:20","h":7.06},{"t":"17:30","h":6.93},{"t":"17:40","h":6.8},{"t":"17:50","h":6.66},{"t":"18:00","h":6.51},{"t":"18:10","h":6.37},{"t":"18:20","h":6.22},{"t":"18:30","h":6.08},{"t":"18:40","h":5.93},{"t":"18:50","h":5.79},{"t":"19:00","h":5.65},{"t":"19:10","h":5.52},{"t":"19:20","h":5.39},{"t":"19:30","h":5.26},{"t":"19:40","h":5.14},{"t":"19:50","h":5.03},{"t":"20:00","h":4.92},{"t":"20:10","h":4.82},{"t":"20:20","h":4.73},{"t":"20:30","h":4.64},{"t":"20:40","h":4.57},{"t":"20:50","h":4.51},{"t":"21:00","h":4.45},{"t":"21:10","h":4.41},{"t":"21:20","h":4.38},{"t":"21:30","h":4.36},{"t":"21:40","h":4.34},{"t":"21:50","h":4.34},{"t":"22:00","h":4.35},{"t":"22:10","h":4.37},{"t":"22:20","h":4.4},{"t":"22:30","h":4.44},{"t":"22:40","h":4.49},{"t":"22:50","h":4.56},{"t":"23:00","h":4.63},{"t":"23:10","h":4.72},{"t":"23:20","h":4.83},{"t":"23:30","h":4.94},{"t":"23:40","h":5.07},{"t":"23:50","h":5.21},{"t":"00:00","h":5.35}],
+  "nowTime":"12:51","nowHeight":6.78,
+  "sunrise":"05:30","sunset":"20:59",
+  "range":{"min":4.3,"max":7.9},
+  "meta":{"source":"@u-b/tides-core harmonic predictor (fitted St Helier constituents), timezone Europe/Jersey; sunrise/sunset from core almanac (NOAA solar); computed for 2026-07-24","station":"St Helier"}
+};
+
+/* ---------------------------------- helpers ---------------------------------- */
+const SVGNS = "http://www.w3.org/2000/svg";
+const THIN = " ";                                   // Formatters.swift thinSpace
+const minsOf = s => { const [h,m] = s.split(":").map(Number); return h*60 + m; };
+const hVal  = m => (Math.round(m*10)/10).toFixed(1);      // heightValue: "%.1f", no unit
+const hStr  = m => hVal(m) + THIN + "m";                  // height: value + thin space + m
+
+function countdown(targetMin, nowMin){                    // Formatters.countdown
+  const d = targetMin - nowMin;
+  if (d <= 0) return "now";
+  const h = Math.floor(d/60), r = d % 60;
+  return h > 0 ? `in ${h} h ${String(r).padStart(2,"0")} m` : `in ${r} m`;
+}
+function dayLength(mins){                                  // Formatters.dayLength → "15 h 29"
+  return `${Math.floor(mins/60)} h ${String(mins%60).padStart(2,"0")}`;
+}
+function el(tag, cls, txt){
+  const n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (txt != null) n.textContent = txt;
+  return n;
+}
+function svg(tag, attrs){
+  const n = document.createElementNS(SVGNS, tag);
+  for (const k in attrs) n.setAttribute(k, attrs[k]);
+  return n;
+}
+
+/* --------------------------------- gear teeth -------------------------------- */
+(function gear(){
+  const g = document.getElementById("gearteeth");
+  for (let k = 0; k < 8; k++){
+    g.appendChild(svg("rect", {
+      x: 10.6, y: 1.4, width: 2.8, height: 4.2, rx: 0.9,
+      transform: `rotate(${k*45} 12 12)`
+    }));
+  }
+})();
+
+/* --------------------------------- date label -------------------------------- */
+(function date(){
+  const iso = (DATA.meta.source.match(/computed for (\d{4}-\d{2}-\d{2})/) || [])[1] || "2026-07-24";
+  const d = new Date(iso + "T12:00:00Z");
+  const label = new Intl.DateTimeFormat("en-GB",
+    { weekday:"long", day:"numeric", month:"long", timeZone:"UTC" }).format(d); // "Friday 24 July"
+  document.getElementById("date").textContent = label;
+  document.getElementById("clock").textContent = DATA.nowTime;
+})();
+
+/* ---------------------------- derived "now" state ---------------------------- */
+const nowMin = minsOf(DATA.nowTime);
+const evMin  = DATA.events.map(e => minsOf(e.time));
+const nextIdx = evMin.findIndex(t => t >= nowMin);        // first not-yet-past extreme
+const nextEx  = DATA.events[nextIdx];
+const rising  = nextEx.type === "high";                   // slope sign at now (low → next high)
+
+/* ---------------------------------- hero ------------------------------------- */
+(function hero(){
+  const host = document.getElementById("hero");
+  host.appendChild(el("div", "eyebrow", nextEx.type === "high" ? "Next high water" : "Next low water"));
+  host.appendChild(el("div", "hero-time", nextEx.time));
+  host.appendChild(el("div", "hero-sub", `${hStr(nextEx.height)} · ${countdown(minsOf(nextEx.time), nowMin)}`));
+
+  const nl = el("div", "nowline");
+  nl.appendChild(el("span", null, `now ${hStr(DATA.nowHeight)}`));
+  const tri = el("span", "tri");
+  tri.innerHTML = rising
+    ? '<svg viewBox="0 0 12 12"><path d="M6 2 L10.5 9.5 L1.5 9.5 Z"/></svg>'
+    : '<svg viewBox="0 0 12 12"><path d="M6 10 L1.5 2.5 L10.5 2.5 Z"/></svg>';
+  nl.appendChild(tri);
+  nl.appendChild(el("span", null, rising ? "rising" : "falling"));
+  host.appendChild(nl);
+})();
+
+/* ------------------------------ extremes table ------------------------------- */
+(function extremes(){
+  const host = document.getElementById("extremes");
+  DATA.events.forEach((ev, i) => {
+    if (i > 0) host.appendChild(el("div", "rule"));
+    const t = evMin[i];
+    // Row emphasis (ExtremesTable.rowColor): past → tertiary, next → sea, later → secondary.
+    const rowColor = t < nowMin ? "var(--sea-tertiary)"
+                   : (i === nextIdx ? "var(--sea)" : "var(--sea-secondary)");
+    const swingColor = t < nowMin ? "var(--sea-tertiary)" : "var(--sea-secondary)";
+
+    const tag = el("div", "tag", ev.type === "high" ? "HW" : "LW");
+    tag.style.color = rowColor;
+    const time = el("div", "cell", ev.time);
+    time.style.color = rowColor;
+    const height = el("div", "cell num", hVal(ev.height));   // heightValue — no unit in the table
+    height.style.color = rowColor;
+
+    const swing = el("div", "cell num");
+    if (i > 0){
+      const d = ev.height - DATA.events[i-1].height;         // signed Δ vs previous extreme
+      swing.textContent = `${d >= 0 ? "↑" : "↓"} ${hVal(Math.abs(d))}`;
+      swing.style.color = swingColor;
+    }
+    host.append(tag, time, height, swing);
+  });
+})();
+
+/* ---------------------------------- sun row ---------------------------------- */
+(function sun(){
+  const host = document.getElementById("sunrow");
+  host.appendChild(el("span", "sun-label", "SUN"));
+  host.appendChild(el("span", "tick"));
+  host.appendChild(el("span", null, DATA.sunrise));
+  host.appendChild(el("span", "arrow", "→"));
+  host.appendChild(el("span", "tick"));
+  host.appendChild(el("span", null, DATA.sunset));
+  const len = minsOf(DATA.sunset) - minsOf(DATA.sunrise);
+  host.appendChild(el("span", null, `· ${dayLength(len)}`));
+})();
+
+/* =============================================================================
+   TIDE CURVE  (TideCurveView + CurveLayout, CurveStyle.app)
+   ============================================================================= */
+(function curve(){
+  const root = document.getElementById("curveSvg");
+  const W = 393, H = 200, TOP = 24, BOT = H - 24, PLOTH = BOT - TOP;   // insets 24/24
+  const N = DATA.curve.length;
+
+  // x(t): linear in UTC across the day; samples indexed (last = next midnight).
+  const xSample = i => (i * 10 / 1440) * W;                 // 10-min spacing
+  const xTime   = mins => (mins / 1440) * W;
+
+  // y-domain: samples ∪ exact extreme heights, padded max(range,1) × 0.07.
+  const hs = DATA.curve.map(p => p.h).concat(DATA.events.map(e => e.height));
+  let lo = Math.min(...hs), hi = Math.max(...hs);
+  const pad = Math.max(hi - lo, 1) * 0.07; lo -= pad; hi += pad;
+  const span = hi - lo;
+  const yOf = h => TOP + (1 - (h - lo) / span) * PLOTH;
+
+  const defs = svg("defs");
+  const grad = svg("linearGradient", { id:"seaFill", gradientUnits:"userSpaceOnUse", x1:0, y1:TOP, x2:0, y2:BOT });
+  grad.appendChild(svg("stop", { offset:"0", class:"c-fill-top" }));
+  grad.appendChild(svg("stop", { offset:"1", class:"c-fill-bottom" }));
+  defs.appendChild(grad);
+  root.appendChild(defs);
+
+  // 1 — Sea fill (curve → plot-bottom, vertical gradient seaFillTop → transparent).
+  let d = `M ${xSample(0).toFixed(2)} ${yOf(DATA.curve[0].h).toFixed(2)}`;
+  for (let i = 1; i < N; i++) d += ` L ${xSample(i).toFixed(2)} ${yOf(DATA.curve[i].h).toFixed(2)}`;
+  const fillD = d + ` L ${W} ${BOT} L 0 ${BOT} Z`;
+  root.appendChild(svg("path", { d: fillD, fill:"url(#seaFill)" }));
+
+  // 2 — Horizon line (0.5pt hairline) at y(horizonDatum); datum ≈ (dayMax + dayMin)/2.
+  const datum = (DATA.range.min + DATA.range.max) / 2;      // 6.1
+  const hy = yOf(datum);
+  root.appendChild(svg("line", { class:"c-horizon", x1:0, y1:hy, x2:W, y2:hy, "stroke-width":0.5 }));
+  const knock = svg("rect", { class:"c-knockout" });        // sized after we measure the label
+  root.appendChild(knock);
+  const hLabel = svg("text", { class:"svg-horizon", "text-anchor":"end", x: W - 4, y: hy });
+  hLabel.setAttribute("dominant-baseline", "middle");
+  hLabel.textContent = hVal(datum);                          // heightValue — no unit ("6.1")
+  root.appendChild(hLabel);
+
+  // 4 — Sun ticks (1pt dawn, 7pt rising from plot bottom).
+  const sunTimes = [];
+  [DATA.sunrise, DATA.sunset].forEach(s => {
+    const x = Math.min(Math.max(xTime(minsOf(s)), 0), W);
+    root.appendChild(svg("line", { class:"c-tick", x1:x, y1:BOT-7, x2:x, y2:BOT, "stroke-width":1 }));
+    const t = svg("text", { class:"svg-sun", "text-anchor":"middle", x:x, y: BOT + 13, "data-tick":x });
+    t.textContent = s;
+    root.appendChild(t);
+    sunTimes.push({ node:t, tickX:x });
+  });
+
+  // 5 — In-plot extreme labels: time (chartTime, sea) over height (chartHeight, secondary).
+  const lwSpans = [];
+  DATA.events.forEach(ev => {
+    const mx = xTime(minsOf(ev.time));
+    const my = yOf(ev.height);
+    const r  = ev.type === "high" ? 3 : 3.5;
+    const blockH = 24;
+    let blockTop = ev.type === "high" ? my - r - 3 - blockH : my + r + 3;
+    blockTop = Math.min(Math.max(blockTop, 0), H - blockH);
+
+    const tNode = svg("text", { class:"svg-ctime",   "text-anchor":"middle", x:mx, y: blockTop + 9,  "data-mx":mx });
+    tNode.textContent = ev.time;
+    const hNode = svg("text", { class:"svg-cheight", "text-anchor":"middle", x:mx, y: blockTop + 21, "data-mx":mx });
+    hNode.textContent = hStr(ev.height);                     // in-plot height DOES carry the unit
+    root.appendChild(tNode); root.appendChild(hNode);
+    if (ev.type === "low") lwSpans.push({ node:tNode, alt:hNode, mx });
+  });
+
+  // 6 — Now-line (0.75pt seaTertiary, full band), today only.
+  const nowX = Math.min(Math.max(xTime(nowMin), 1), W - 1);
+  root.appendChild(svg("line", { class:"c-nowline", x1:nowX, y1:TOP, x2:nowX, y2:BOT, "stroke-width":0.75 }));
+
+  // Overlay group (curve stroke + markers) with a punch-out at the now-dot.
+  const mask = svg("mask", { id:"nowPunch" });
+  mask.appendChild(svg("rect", { x:0, y:0, width:W, height:H, fill:"#fff" }));
+  const nowY = yOf(DATA.nowHeight);
+  mask.appendChild(svg("circle", { cx:nowX, cy:nowY, r:5.5, fill:"#000" }));   // dotR + 2 halo
+  defs.appendChild(mask);
+  const overlay = svg("g", { mask:"url(#nowPunch)" });
+
+  // 3 — Curve stroke (open polyline, 1.5pt sea, round cap/join).
+  overlay.appendChild(svg("path", { class:"c-stroke", d:d, "stroke-width":1.5, "stroke-linecap":"round", "stroke-linejoin":"round" }));
+
+  // 5 — Markers: HW filled dot r3, LW open ring r3.5 stroke 1.5.
+  DATA.events.forEach(ev => {
+    const cx = xTime(minsOf(ev.time)), cy = yOf(ev.height);
+    if (ev.type === "high") overlay.appendChild(svg("circle", { class:"c-hw", cx, cy, r:3 }));
+    else overlay.appendChild(svg("circle", { class:"c-lw", cx, cy, r:3.5, "stroke-width":1.5 }));
+  });
+  root.appendChild(overlay);
+
+  // 7 — Now-dot (r3.5 sea) on top of the punched gap.
+  root.appendChild(svg("circle", { class:"c-nowdot", cx:nowX, cy:nowY, r:3.5 }));
+
+  /* ---- second pass: measure text, clamp label x, resolve sun-time collisions ---- */
+  const clampX = (desired, w) => Math.min(Math.max(desired, 0), Math.max(W - w, 0));
+
+  requestAnimationFrame(() => {
+    // Extreme label lines: centre on marker, clamp leading edge to [0, W - w].
+    root.querySelectorAll("[data-mx]").forEach(node => {
+      const mx = parseFloat(node.getAttribute("data-mx"));
+      const w  = node.getComputedTextLength();
+      node.setAttribute("x", clampX(mx - w/2, w) + w/2);    // recentre after clamp
+    });
+    // LW label spans (bottom strip) — max(time,height) width, for sun-time avoidance.
+    const spans = lwSpans.map(s => {
+      const w = Math.max(s.node.getComputedTextLength(), s.alt.getComputedTextLength());
+      const x = clampX(s.mx - w/2, w);
+      return { lo:x, hi:x + w, mx:s.mx };
+    });
+    // Sun times: centre + clamp, then slide clear of any overlapping LW span.
+    sunTimes.forEach(s => {
+      const w = s.node.getComputedTextLength();
+      let cx = clampX(s.tickX - w/2, w) + w/2;
+      spans.forEach(ex => {
+        if (cx - w/2 < ex.hi && cx + w/2 > ex.lo){
+          cx = s.tickX >= ex.mx ? ex.hi + 3 + w/2 : ex.lo - 3 - w/2;
+          cx = clampX(cx - w/2, w) + w/2;
+        }
+      });
+      s.node.setAttribute("x", cx);
+    });
+    // Horizon knock-out rect (sky) behind the datum label, inset −2.
+    const b = hLabel.getBBox();
+    knock.setAttribute("x", b.x - 2);
+    knock.setAttribute("y", b.y - 2);
+    knock.setAttribute("width", b.width + 4);
+    knock.setAttribute("height", b.height + 4);
+  });
+})();
+
+/* --------------------------------- theming ----------------------------------- */
+(function theme(){
+  const btn = document.getElementById("themeToggle");
+  const icon = document.getElementById("themeIcon");
+  const label = document.getElementById("themeLabel");
+  const SUN  = '<circle cx="12" cy="12" r="4.5"/><g stroke-linecap="round"><line x1="12" y1="1.5" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22.5"/><line x1="1.5" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22.5" y2="12"/><line x1="4.4" y1="4.4" x2="6.2" y2="6.2"/><line x1="17.8" y1="17.8" x2="19.6" y2="19.6"/><line x1="4.4" y1="19.6" x2="6.2" y2="17.8"/><line x1="17.8" y1="6.2" x2="19.6" y2="4.4"/></g>';
+  const MOON = '<path d="M20 14.5A8 8 0 019.5 4 8 8 0 1020 14.5z"/>';
+
+  function apply(mode){
+    document.documentElement.setAttribute("data-theme", mode);
+    icon.innerHTML = mode === "dark" ? MOON : SUN;
+    label.textContent = mode === "dark" ? "Dark" : "Light";
+  }
+  // Initial state follows the OS preference (prefers-color-scheme); the toggle overrides it.
+  let mode = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  apply(mode);
+  btn.addEventListener("click", () => { mode = mode === "dark" ? "light" : "dark"; apply(mode); });
+})();
+</script>
