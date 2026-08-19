@@ -2,11 +2,12 @@ import SwiftUI
 import UIKit
 import WidgetKit
 
-/// Screen 1 — the instrument face (design doc §5.1): `TabView(.page)` pager
-/// hard-bounded ±14 days (rubber-band at the edges by construction), index
-/// dots hidden, one `DayPage` per day. Hosts the Fortnight + Settings sheets
-/// (§5.2/§5.3), the deep-link routing (§5.4), and the single soft haptic tick
-/// on landing back on today (§5.1, Almanac graft #5b).
+/// Screen 1 — the instrument face (design doc §5.1): a lazy horizontal
+/// paging `ScrollView` (`LazyHStack` + `.scrollTargetBehavior(.paging)`),
+/// one `DayPage` per day, ±`DeepLink.pageRadius` (10 years — effectively
+/// unbounded; only rendered pages are ever built). Hosts the Fortnight +
+/// Settings sheets (§5.2/§5.3), the deep-link routing (§5.4), and the single
+/// soft haptic tick on landing back on today (§5.1, Almanac graft #5b).
 struct TodayScreen: View {
     /// Deep-link target set by JerseyTidesApp; consumed + cleared here.
     @Binding var requestedDay: CalendarDay?
@@ -14,7 +15,15 @@ struct TodayScreen: View {
     @StateObject private var settings = SettingsStore()
     @StateObject private var tideWatch = TideWatchController()
     /// Pager selection as a signed day offset from `baseDay`; 0 = today.
-    @State private var selection = 0
+    /// Optional because it doubles as the `scrollPosition(id:)` binding —
+    /// treat nil (mid-gesture, mid-layout) as "unchanged".
+    @State private var selection: Int? = 0
+    /// False while the pager is being dragged or decelerating — pauses the
+    /// hero wave's per-frame redraw so nothing competes with the scroll.
+    @State private var pagerSettled = true
+    /// True while a curve scrub hold owns the touch (ScrubEngaged preference)
+    /// — disables the pager's pan so the scrub drag can't page days.
+    @State private var scrubEngaged = false
     /// Today at screen creation; refreshed on foreground when the day rolls.
     @State private var baseDay = TideTime.calendarDay(of: EngineProvider.clock.now)
     @State private var showFortnight = false
@@ -39,7 +48,10 @@ struct TodayScreen: View {
                 .ignoresSafeArea()
                 .allowsHitTesting(false)
         }
-        .onChange(of: selection) { _, _ in pulseVeil() }
+        .onChange(of: selection) { _, new in
+            guard new != nil else { return } // transient scroll states
+            pulseVeil()
+        }
         // Almanac graft #5b: one soft tick when paging lands back on today —
         // nothing fires leaving today or between other days.
         .sensoryFeedback(.impact(weight: .light, intensity: 0.6), trigger: selection == 0) { _, new in
@@ -72,6 +84,7 @@ struct TodayScreen: View {
             consumeDeepLink(requestedDay)
             tideWatch.adoptExisting()
             applyHarnessArguments()
+            warmAround(currentOffset)
         }
     }
 
@@ -93,27 +106,58 @@ struct TodayScreen: View {
         #endif
     }
 
+    /// The day pager. A lazy paging `ScrollView` rather than `TabView(.page)`:
+    /// the TabView builds every page in the `ForEach` eagerly (untenable at
+    /// ±10 years) and re-evaluates them all on each selection change; the lazy
+    /// stack materializes only the on-screen page and its neighbours, so
+    /// swipes stay at full frame rate no matter how far the range spans.
     private func pager(now: Date) -> some View {
-        TabView(selection: $selection) {
-            ForEach(-DeepLink.pageRadius...DeepLink.pageRadius, id: \.self) { offset in
-                DayPageContainer(
-                    day: TideTime.addDays(baseDay, offset),
-                    dayOffset: offset,
-                    isToday: offset == 0,
-                    isActivePage: offset == selection,
-                    now: now,
-                    settings: settings,
-                    tideWatch: tideWatch,
-                    onGearTap: { showSettings = true },
-                    onTodayTap: { page(toOffset: 0) },
-                    onSpringsTap: { showFortnight = true },
-                    onSelectOffset: { page(toOffset: $0) }
-                )
-                .tag(offset)
+        ScrollView(.horizontal) {
+            LazyHStack(spacing: 0) {
+                ForEach(-DeepLink.pageRadius...DeepLink.pageRadius, id: \.self) { offset in
+                    DayPageContainer(
+                        day: TideTime.addDays(baseDay, offset),
+                        dayOffset: offset,
+                        isToday: offset == 0,
+                        isActivePage: offset == currentOffset && pagerSettled,
+                        now: now,
+                        settings: settings,
+                        tideWatch: tideWatch,
+                        onGearTap: { showSettings = true },
+                        onTodayTap: { page(toOffset: 0) },
+                        onSpringsTap: { showFortnight = true },
+                        onSelectOffset: { page(toOffset: $0) }
+                    )
+                    .containerRelativeFrame(.horizontal)
+                }
             }
+            .scrollTargetLayout()
         }
-        .tabViewStyle(.page(indexDisplayMode: .never))
+        .scrollTargetBehavior(.paging)
+        .scrollPosition(id: $selection)
+        .scrollIndicators(.hidden)
+        .scrollDisabled(scrubEngaged)
+        .onScrollPhaseChange { _, newPhase in
+            pagerSettled = newPhase == .idle
+            if newPhase == .idle { warmAround(currentOffset) }
+        }
+        .onPreferenceChange(ScrubEngagedPreferenceKey.self) { engaged in
+            scrubEngaged = engaged
+        }
         .ignoresSafeArea(edges: .bottom)
+    }
+
+    /// The pager's current day offset; nil selection (transient) reads as the
+    /// last settled page's semantics — today at launch.
+    private var currentOffset: Int { selection ?? 0 }
+
+    /// Warm the day-model cache ±2 pages around a pager offset.
+    private func warmAround(_ offset: Int) {
+        DayModelCache.warmNeighbors(
+            of: TideTime.addDays(baseDay, offset),
+            markedHeight: settings.markedHeight,
+            markedLabel: settings.markedLabelOrNil
+        )
     }
 
     // MARK: Navigation
@@ -124,9 +168,17 @@ struct TodayScreen: View {
 
     private func page(toOffset offset: Int) {
         let clamped = min(max(offset, -DeepLink.pageRadius), DeepLink.pageRadius)
-        withAnimation(.easeInOut(duration: 0.18)) {
+        // Near targets glide; far ones (Fortnight rows, deep links, `‹ Today`
+        // from weeks away) teleport — animating hundreds of page widths is
+        // noise, and the veil pulse already marks the transition.
+        if abs(clamped - currentOffset) > 8 {
             selection = clamped
+        } else {
+            withAnimation(.snappy(duration: 0.32, extraBounce: 0)) {
+                selection = clamped
+            }
         }
+        warmAround(clamped)
     }
 
     /// Subtle "night passing" hint on day changes: darken briefly, then
@@ -186,6 +238,28 @@ private enum DayModelCache {
         )
         store[key] = built
         return built
+    }
+
+    /// Pre-assembles the neighbours of `day` off the main actor so a swipe
+    /// always materializes an already-cached page — paying assembly on the
+    /// main thread mid-gesture showed up as a hitch in the slide animation.
+    static func warmNeighbors(of day: CalendarDay, markedHeight: Double?, markedLabel: String?) {
+        let missing = (-2...2)
+            .filter { $0 != 0 }
+            .map { TideTime.addDays(day, $0) }
+            .filter { store[Key(day: $0, markedHeight: markedHeight, markedLabel: markedLabel)] == nil }
+        guard !missing.isEmpty else { return }
+        Task.detached(priority: .userInitiated) {
+            let built = missing.map {
+                ($0, TideDayModel.make(day: $0, markedHeight: markedHeight, markedLabel: markedLabel))
+            }
+            await MainActor.run {
+                if store.count > 96 { store.removeAll(keepingCapacity: true) }
+                for (day, model) in built {
+                    store[Key(day: day, markedHeight: markedHeight, markedLabel: markedLabel)] = model
+                }
+            }
+        }
     }
 }
 

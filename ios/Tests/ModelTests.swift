@@ -184,11 +184,19 @@ struct ModelTests {
         #expect(DeepLink.parse(URL(string: "jerseytides://day")!) == nil)
     }
 
-    @Test func deepLinkOffsetClampsToFourteenDays() {
+    @Test func deepLinkOffsetClampsToPageRadius() {
         let today = CalendarDay(year: 2026, month: 7, day: 17)
         #expect(DeepLink.pageOffset(for: TideTime.addDays(today, 3), today: today) == 3)
         #expect(DeepLink.pageOffset(for: TideTime.addDays(today, -5), today: today) == -5)
-        #expect(DeepLink.pageOffset(for: TideTime.addDays(today, 30), today: today) == 14)
-        #expect(DeepLink.pageOffset(for: TideTime.addDays(today, -30), today: today) == -14)
+        // Well inside the ±10-year bound: no clamping.
+        #expect(DeepLink.pageOffset(for: TideTime.addDays(today, 30), today: today) == 30)
+        #expect(
+            DeepLink.pageOffset(for: TideTime.addDays(today, 5000), today: today)
+                == DeepLink.pageRadius
+        )
+        #expect(
+            DeepLink.pageOffset(for: TideTime.addDays(today, -5000), today: today)
+                == -DeepLink.pageRadius
+        )
     }
 }

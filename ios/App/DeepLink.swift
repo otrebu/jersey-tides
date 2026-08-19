@@ -1,12 +1,15 @@
 import Foundation
 
 /// `jerseytides://day/<ISO-date>` → pager target; the consumer clamps to
-/// ±14 days (design doc §5.4).
+/// ±`pageRadius` days.
 enum DeepLink {
     static let scheme = "jerseytides"
 
-    /// The pager's hard bound: ±14 days around today (design doc §5.1).
-    static let pageRadius = 14
+    /// The pager's hard bound: ±10 years around today. The harmonic engine
+    /// evaluates at any instant, so the pager scrolls as far as anyone would
+    /// ever want; the bound only keeps the `ForEach` range finite (predictions
+    /// this far out are unverifiable against official tables, not invalid).
+    static let pageRadius = 3650
 
     /// Parses `jerseytides://day/2026-07-17`; nil for anything else.
     static func parse(_ url: URL) -> CalendarDay? {
@@ -18,7 +21,7 @@ enum DeepLink {
     }
 
     /// Signed pager offset from today for a deep-linked day, clamped to the
-    /// ±14-day bound (design doc §5.4 "clamped to ±14").
+    /// ±`pageRadius` bound.
     static func pageOffset(for day: CalendarDay, today: CalendarDay) -> Int {
         min(max(TideTime.daysBetween(today, day), -pageRadius), pageRadius)
     }

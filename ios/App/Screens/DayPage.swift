@@ -43,6 +43,10 @@ struct DayPage: View {
     /// First-launch trim draw (§11): once, then never again.
     @AppStorage("hasPlayedCurveIntro") private var hasPlayedCurveIntro = false
     @State private var curveProgress: CGFloat = 1
+    /// Mirrors the scrub overlay's ScrubEngaged preference — freezes this
+    /// page's vertical scroll while a scrub hold owns the touch, so the
+    /// readout drag can't also rubber-band the page.
+    @State private var scrubEngaged = false
 
     private let margin: CGFloat = 24
     /// Vertical rhythm between the page's stacked sections (mockup `.app` gap).
@@ -64,6 +68,8 @@ struct DayPage: View {
             .padding(margin)
         }
         .background(Color.sky.ignoresSafeArea())
+        .scrollDisabled(scrubEngaged)
+        .onPreferenceChange(ScrubEngagedPreferenceKey.self) { scrubEngaged = $0 }
         .onAppear(perform: playCurveIntroIfNeeded)
     }
 
@@ -97,7 +103,7 @@ struct DayPage: View {
                 Text(TideFormatters.weekday(model.day))
                     .font(dateTitleFont)
                     .foregroundStyle(.sea)
-                Text(TideFormatters.dayMonth(model.day)).metaStyle()
+                Text(TideFormatters.dayMonth(model.day) + yearSuffix).metaStyle()
             }
         }
     }
@@ -108,14 +114,30 @@ struct DayPage: View {
     }
 
     /// `Tomorrow` / `Yesterday` / `In N days` / `N days ago` (mockup
-    /// `relativeLabel`); non-today only, so the 0 case never shows.
+    /// `relativeLabel`), easing into rounded months/years far out — the big
+    /// date underneath stays exact. Non-today only, so the 0 case never shows.
     private var relativeLabel: String {
         switch dayOffset {
         case 1: return "Tomorrow"
         case -1: return "Yesterday"
-        case let delta where delta > 0: return "In \(delta) days"
-        default: return "\(-dayOffset) days ago"
+        default: break
         }
+        let days = abs(dayOffset)
+        let phrase: String
+        switch days {
+        case ..<61: phrase = "\(days) days"
+        case ..<700: phrase = "\(Int((Double(days) / 30.437).rounded())) months"
+        default: phrase = "\(Int((Double(days) / 365.25).rounded())) years"
+        }
+        return dayOffset > 0 ? "In \(phrase)" : "\(phrase) ago"
+    }
+
+    /// `" 2027"` appended to the non-today subtitle once the page has scrolled
+    /// into another year; empty inside the current year. Today is recovered
+    /// from this page's own offset, keeping the view clock-free.
+    private var yearSuffix: String {
+        let todayYear = TideTime.addDays(model.day, -dayOffset).year
+        return model.day.year == todayYear ? "" : " \(model.day.year)"
     }
 
     private func watchButton(_ action: @escaping () -> Void) -> some View {
