@@ -1,0 +1,109 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body { margin: 0; font-family: -apple-system, "SF Pro Text", "Helvetica Neue", system-ui, sans-serif; }
+    a { color: #B97E3D; } a:hover { color: #92400e; }
+  </style>
+</helmet>
+<div style="width: 424px; height: 442px; display: flex; align-items: center; justify-content: center; background: {{t.backdrop}}">
+  <div style="width: 364px; height: 382px; box-sizing: border-box; border-radius: 24px; background: {{t.sky}}; box-shadow: {{t.shadow}}; padding: 16px 16px 14px 16px; display: flex; flex-direction: column">
+    <div style="display: flex; flex-direction: row; justify-content: space-between; align-items: baseline">
+      <div style="font-size: 10px; font-weight: 600; letter-spacing: 1.4px; text-transform: uppercase; color: {{t.sea55}}">St Helier &middot; Jersey</div>
+      <div style="font-size: 12px; color: {{t.sea55}}">Wed 19 Aug</div>
+    </div>
+    <div style="display: flex; flex-direction: row; justify-content: flex-end; align-items: center; gap: 5px; margin-top: 2px">
+      <div style="font-size: 12px; color: {{t.sea55}}">NEAPS &middot;</div>
+      <svg width="11" height="11" viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="5" cy="5" r="4" fill="none" stroke="{{t.dawn}}" stroke-width="1"></circle>
+        <path d="M5 1 A4 4 0 0 1 5 9 Z" fill="{{t.dawn}}"></path>
+      </svg>
+      <div style="font-size: 12px; color: {{t.sea55}}">first quarter</div>
+    </div>
+    <div style="flex-grow: 1; position: relative; margin-top: 12px">
+      <div style="position: absolute; left: 0; right: 22px; bottom: 33.3%; height: 0.5px; background: {{t.hair}}"></div>
+      <div style="position: absolute; left: 0; right: 22px; bottom: 66.6%; height: 0.5px; background: {{t.hair}}"></div>
+      <div style="position: absolute; left: 0; right: 22px; bottom: 100%; height: 0.5px; background: {{t.hair}}"></div>
+      <div style="position: absolute; right: 0; bottom: 31%; font-size: 10px; font-variant-numeric: tabular-nums; color: {{t.sea30}}">8</div>
+      <div style="position: absolute; right: 0; bottom: 64%; font-size: 10px; font-variant-numeric: tabular-nums; color: {{t.sea30}}">10</div>
+      <div style="position: absolute; right: 0; bottom: 97%; font-size: 10px; font-variant-numeric: tabular-nums; color: {{t.sea30}}">12</div>
+      <div style="position: absolute; left: 0; right: 22px; top: 0; bottom: 0; display: flex; flex-direction: row; align-items: flex-end; gap: 7px">
+        <sc-for list="{{bars}}" as="b" hint-placeholder-count="14">
+          <div style="flex-grow: 1; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: flex-end">
+            <div style="height: 13px; font-size: 10px; font-variant-numeric: tabular-nums; color: {{t.sea55}}">{{b.cap}}</div>
+            <div style="width: 100%; height: {{b.pct}}%; background: {{b.color}}; border-radius: 2px 2px 0 0"></div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+    <div style="height: 0.5px; background: {{t.hair}}; margin-right: 22px"></div>
+    <div style="display: flex; flex-direction: row; gap: 7px; margin-top: 5px; margin-right: 22px">
+      <sc-for list="{{bars}}" as="b" hint-placeholder-count="14">
+        <div style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; gap: 3px">
+          <div style="font-size: 9px; font-weight: 600; color: {{b.dowColor}}">{{b.dow}}</div>
+          <div style="height: 11px; display: flex; align-items: center">
+            <sc-if value="{{b.firstQuarter}}" hint-placeholder-val="{{ false }}">
+              <svg width="9" height="9" viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="5" cy="5" r="4" fill="none" stroke="{{t.dawn}}" stroke-width="1"></circle>
+                <path d="M5 1 A4 4 0 0 1 5 9 Z" fill="{{t.dawn}}"></path>
+              </svg>
+            </sc-if>
+            <sc-if value="{{b.newMoon}}" hint-placeholder-val="{{ false }}">
+              <svg width="9" height="9" viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="5" cy="5" r="4" fill="none" stroke="{{t.dawn}}" stroke-width="1"></circle>
+              </svg>
+            </sc-if>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+    <div style="display: flex; flex-direction: row; justify-content: space-between; align-items: baseline; margin-top: 8px; margin-right: 22px">
+      <div style="font-size: 12px; color: {{t.sea55}}">daily max high water</div>
+      <div style="font-size: 12px; font-variant-numeric: tabular-nums; color: {{t.sea55}}">springs Sun 30 &middot; 11.1 m</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":424,"height":442}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const dark = this.props.dark ?? false;
+    const rgb = dark ? '233,239,241' : '16,37,48';
+    const t = {
+      sky: dark ? '#0B1417' : '#F4F6F6',
+      backdrop: dark ? '#05090B' : '#E6EAEA',
+      sea: dark ? '#E9EFF1' : '#102530',
+      sea55: 'rgba(' + rgb + ',0.55)',
+      sea30: 'rgba(' + rgb + ',0.30)',
+      hair: 'rgba(' + rgb + ',0.14)',
+      dawn: dark ? '#E2AE6B' : '#B97E3D',
+      shadow: dark ? '0 10px 28px rgba(0,0,0,0.5)' : '0 10px 28px rgba(16,37,48,0.10)'
+    };
+    const heights = [9.0, 8.3, 7.6, 7.0, 6.7, 6.9, 7.4, 8.2, 9.1, 10.0, 10.7, 11.1, 11.0, 10.5];
+    const dows = ['W', 'T', 'F', 'S', 'S', 'M', 'T', 'W', 'T', 'F', 'S', 'S', 'M', 'T'];
+    const peak = 11;
+    const bars = heights.map(function (h, i) {
+      const today = i === 0;
+      return {
+        // Scale 6-12 m onto the plot height.
+        pct: (((h - 6) / 6) * 100).toFixed(1),
+        color: today ? t.sea : (i === peak ? t.sea55 : t.sea30),
+        cap: i === peak ? h.toFixed(1) : '',
+        dow: dows[i],
+        dowColor: today ? t.sea : t.sea30,
+        firstQuarter: i === 1,
+        newMoon: i === 8
+      };
+    });
+    return { t, bars };
+  }
+}
+</script>
+</body>
+</html>

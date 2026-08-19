@@ -1,0 +1,78 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body { margin: 0; font-family: -apple-system, "SF Pro Text", "Helvetica Neue", system-ui, sans-serif; }
+    a { color: #B97E3D; } a:hover { color: #92400e; }
+  </style>
+</helmet>
+<div style="width: 424px; height: 230px; display: flex; align-items: center; justify-content: center; background: {{t.backdrop}}">
+  <div style="width: 364px; height: 170px; box-sizing: border-box; border-radius: 24px; background: {{t.sky}}; box-shadow: {{t.shadow}}; padding: 14px 16px 13px 16px; display: flex; flex-direction: column">
+    <div style="display: flex; flex-direction: row; justify-content: space-between; align-items: baseline">
+      <div style="font-size: 10px; font-weight: 600; letter-spacing: 1.4px; text-transform: uppercase; color: {{t.sea55}}">St Helier &middot; Jersey</div>
+      <div style="font-size: 12px; color: {{t.sea55}}">morning HW</div>
+    </div>
+    <div style="flex-grow: 1; display: flex; flex-direction: row; align-items: stretch; gap: 4px; margin-top: 8px">
+      <sc-for list="{{days}}" as="d" hint-placeholder-count="7">
+        <div style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 3px">
+          <div style="font-size: 9px; font-weight: 600; letter-spacing: 1.2px; color: {{d.dowColor}}">{{d.dow}}</div>
+          <svg width="42" height="22" viewBox="0 0 42 22" xmlns="http://www.w3.org/2000/svg">
+            <polyline points="{{d.spark}}" fill="none" stroke="{{d.sparkColor}}" stroke-width="{{d.sparkWidth}}" stroke-linecap="round" stroke-linejoin="round"></polyline>
+          </svg>
+          <div style="font-size: 13px; font-variant-numeric: tabular-nums; color: {{d.timeColor}}">{{d.time}}</div>
+          <div style="font-size: 11px; font-variant-numeric: tabular-nums; color: {{t.sea30}}">{{d.height}}</div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":424,"height":230}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const dark = this.props.dark ?? false;
+    const rgb = dark ? '233,239,241' : '16,37,48';
+    const t = {
+      sky: dark ? '#0B1417' : '#F4F6F6',
+      backdrop: dark ? '#05090B' : '#E6EAEA',
+      sea: dark ? '#E9EFF1' : '#102530',
+      sea55: 'rgba(' + rgb + ',0.55)',
+      sea30: 'rgba(' + rgb + ',0.30)',
+      hair: 'rgba(' + rgb + ',0.14)',
+      shadow: dark ? '0 10px 28px rgba(0,0,0,0.5)' : '0 10px 28px rgba(16,37,48,0.10)'
+    };
+    const dows = ['WED', 'THU', 'FRI', 'SAT', 'SUN', 'MON', 'TUE'];
+    const times = ['11:12', '11:46', '12:24', '13:09', '14:05', '15:12', '16:20'];
+    const heights = [9.0, 8.3, 7.6, 7.0, 6.7, 6.9, 7.4];
+    const days = dows.map(function (dow, i) {
+      // Two tidal cycles across the strip; HW phase drifts ~50 min/day.
+      const amp = 2.5 + ((heights[i] - 6.7) / (9.0 - 6.7)) * 5.5;
+      const hwHour = 11.2 + 0.82 * i;
+      const pts = [];
+      for (let x = 1; x <= 41; x += 2) {
+        const hour = (x / 42) * 24;
+        const y = 11 - amp * Math.cos(((hour - hwHour) / 12.42) * 2 * Math.PI);
+        pts.push(x + ',' + y.toFixed(1));
+      }
+      const today = i === 0;
+      return {
+        dow, time: times[i], height: heights[i].toFixed(1),
+        dowColor: today ? t.sea : t.sea30,
+        timeColor: today ? t.sea : t.sea55,
+        sparkColor: today ? t.sea : t.sea30,
+        sparkWidth: today ? 1.8 : 1.2,
+        spark: pts.join(' ')
+      };
+    });
+    return { t, days };
+  }
+}
+</script>
+</body>
+</html>
