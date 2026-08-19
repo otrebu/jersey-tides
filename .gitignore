@@ -3,3 +3,14 @@ dist/
 .wrangler/
 *.log
 .DS_Store
+
+# Swift / Xcode (ios/) — .xcodeproj is XcodeGen-generated, never committed
+.build/
+.swiftpm/
+xcuserdata/
+*.xcodeproj
+ios/.derived/
+ios/.derived-device/
+
+# Claude Design seeded canvas bundles — regenerated from design/*/ *.dc.html sources
+design/*/jersey-tides-widgets.html

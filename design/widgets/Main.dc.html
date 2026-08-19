@@ -1,0 +1,74 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body { margin: 0; font-family: -apple-system, "SF Pro Text", "Helvetica Neue", system-ui, sans-serif; }
+    a { color: #B97E3D; } a:hover { color: #92400e; }
+  </style>
+</helmet>
+<div style="width: 230px; height: 230px; display: flex; align-items: center; justify-content: center; background: {{t.backdrop}}">
+  <div style="width: 170px; height: 170px; box-sizing: border-box; border-radius: 24px; background: {{t.sky}}; box-shadow: {{t.shadow}}; padding: 14px 16px 13px 16px; display: flex; flex-direction: column; align-items: stretch; gap: 2px">
+    <div style="font-size: 10px; font-weight: 600; letter-spacing: 1.4px; text-transform: uppercase; color: {{t.sea55}}">St Helier</div>
+    <div style="flex-grow: 1; display: flex; align-items: center; justify-content: center">
+      <svg width="86" height="86" viewBox="0 0 88 88" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="44" cy="44" r="40" fill="none" stroke="{{t.hair}}" stroke-width="1"></circle>
+        <sc-for list="{{ticks}}" as="tick" hint-placeholder-count="12">
+          <line x1="{{tick.x1}}" y1="{{tick.y1}}" x2="{{tick.x2}}" y2="{{tick.y2}}" stroke="{{tick.color}}" stroke-width="1.5" stroke-linecap="round"></line>
+        </sc-for>
+        <text x="44.5" y="22.5" text-anchor="middle" font-size="7" font-weight="600" letter-spacing="1.1" fill="{{t.sea55}}">HIGH</text>
+        <text x="44.5" y="72.5" text-anchor="middle" font-size="7" font-weight="600" letter-spacing="1.1" fill="{{t.sea55}}">LOW</text>
+        <line x1="{{needle.tailX}}" y1="{{needle.tailY}}" x2="{{needle.tipX}}" y2="{{needle.tipY}}" stroke="{{t.sea}}" stroke-width="2.5" stroke-linecap="round"></line>
+        <circle cx="44" cy="44" r="3.5" fill="{{t.sea}}"></circle>
+      </svg>
+    </div>
+    <div style="font-size: 15px; font-weight: 400; font-variant-numeric: tabular-nums; color: {{t.sea}}">HW in 1 h 27</div>
+    <div style="font-size: 12px; font-variant-numeric: tabular-nums; color: {{t.sea55}}">23:24 &middot; 8.7 m</div>
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":230,"height":230}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const dark = this.props.dark ?? false;
+    const rgb = dark ? '233,239,241' : '16,37,48';
+    const t = {
+      sky: dark ? '#0B1417' : '#F4F6F6',
+      backdrop: dark ? '#05090B' : '#E6EAEA',
+      sea: dark ? '#E9EFF1' : '#102530',
+      sea55: 'rgba(' + rgb + ',0.55)',
+      sea30: 'rgba(' + rgb + ',0.30)',
+      hair: 'rgba(' + rgb + ',0.14)',
+      fill8: 'rgba(' + rgb + ',0.08)',
+      dawn: dark ? '#E2AE6B' : '#B97E3D',
+      shadow: dark ? '0 10px 28px rgba(0,0,0,0.5)' : '0 10px 28px rgba(16,37,48,0.10)'
+    };
+    // 12 ticks; cardinal (HIGH top / LOW bottom) longer + stronger.
+    const ticks = [];
+    for (let k = 0; k < 12; k++) {
+      const a = (k * 30) * Math.PI / 180;
+      const cardinal = k === 0 || k === 6;
+      const r1 = 40, r2 = cardinal ? 33 : 36.5;
+      ticks.push({
+        x1: (44 + r1 * Math.sin(a)).toFixed(1), y1: (44 - r1 * Math.cos(a)).toFixed(1),
+        x2: (44 + r2 * Math.sin(a)).toFixed(1), y2: (44 - r2 * Math.cos(a)).toFixed(1),
+        color: cardinal ? t.sea55 : t.sea30
+      });
+    }
+    // Rising, 1 h 27 to HW: needle 46 degrees left of HIGH (rising = left half).
+    const ang = -46 * Math.PI / 180;
+    const needle = {
+      tipX: (44 + 28 * Math.sin(ang)).toFixed(1), tipY: (44 - 28 * Math.cos(ang)).toFixed(1),
+      tailX: (44 - 7 * Math.sin(ang)).toFixed(1), tailY: (44 + 7 * Math.cos(ang)).toFixed(1)
+    };
+    return { t, ticks, needle };
+  }
+}
+</script>
+</body>
+</html>

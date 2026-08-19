@@ -1,0 +1,54 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html", "x": 0, "y": 0, "w": 230, "h": 230, "title": "Tide Clock · small" },
+    { "file": "Gauge.dc.html", "x": 280, "y": 0, "w": 230, "h": 230, "title": "Gauge · small" },
+    { "file": "Schedule.dc.html", "x": 560, "y": 0, "w": 424, "h": 230, "title": "Schedule · medium" },
+    { "file": "Week.dc.html", "x": 0, "y": 420, "w": 424, "h": 230, "title": "Week · medium" },
+    { "file": "Fortnight.dc.html", "x": 560, "y": 420, "w": 424, "h": 442, "title": "Fortnight · large" }
+  ],
+  "annotations": [
+    {
+      "id": "intro",
+      "x": 0,
+      "y": -170,
+      "w": 480,
+      "text": "Five NEW widget concepts for Jersey Tides, alongside the shipped Dial / Chart / Accessories. Same two-hue system: sea for everything tidal, dawn for sun & moon, on the sky ground. Each artboard has a dark-mode tweak (chip above the frame)."
+    },
+    {
+      "id": "note-clock",
+      "x": 0,
+      "y": 246,
+      "w": 240,
+      "text": "TIDE CLOCK — the classic 12 h 25 m instrument: needle climbs the left side to HIGH, falls down the right to LOW. Instantly readable at a glance from across the room.\nTradeoff: no absolute heights on the face."
+    },
+    {
+      "id": "note-gauge",
+      "x": 280,
+      "y": 246,
+      "w": 240,
+      "text": "GAUGE — the day's range as a filled column: where the water sits between today's LW and HW right now.\nTradeoff: least information of the set, but strongest single read."
+    },
+    {
+      "id": "note-schedule",
+      "x": 560,
+      "y": 246,
+      "w": 300,
+      "text": "SCHEDULE — the next four turnings as stations on a line, countdown on the first. For planning the next 24 h without reading a curve.\nTradeoff: no shape-of-day; text-first."
+    },
+    {
+      "id": "note-week",
+      "x": 0,
+      "y": 666,
+      "w": 300,
+      "text": "WEEK — seven days of shrinking/growing cycles plus each morning's HW. Shows the springs-to-neaps drift and how HW walks ~50 min later per day.\nTradeoff: one number per day only."
+    },
+    {
+      "id": "note-fortnight",
+      "x": 560,
+      "y": 878,
+      "w": 320,
+      "text": "FORTNIGHT — 14 daily max-HW bars: the full springs–neaps breathing cycle, moon quarter/new marks in dawn, next springs called out. Unique to a computed-offline app — no API could give this for free.\nTradeoff: zero about today's hours; pairs with a small."
+    }
+  ],
+  "launch": { "view": "canvas" }
+}
