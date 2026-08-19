@@ -10,6 +10,11 @@ struct TidesWidgetBundle: WidgetBundle {
     var body: some Widget {
         DialWidget()
         ChartWidget()
+        ClockWidget()
+        GaugeWidget()
+        ScheduleWidget()
+        WeekWidget()
+        FortnightWidget()
         RectWidget()
         GlanceWidget()
         TideWatchActivityWidget()
@@ -60,6 +65,76 @@ struct ChartWidgetEntryView: View {
         default:
             ChartMediumView(entry: entry)
         }
+    }
+}
+
+/// systemSmall — "the clock" (classic tide-clock face; widget canvas #1).
+struct ClockWidget: Widget {
+    static let kind = "TidesClock"
+
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: Self.kind, provider: GlanceTimelineProvider()) { entry in
+            ClockSmallView(entry: entry)
+        }
+        .configurationDisplayName("Clock")
+        .description("Where the tide sits in its cycle — high at 12, low at 6.")
+        .supportedFamilies([.systemSmall])
+    }
+}
+
+/// systemSmall — "the gauge" (day-range level column; widget canvas #2).
+struct GaugeWidget: Widget {
+    static let kind = "TidesGauge"
+
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: Self.kind, provider: GlanceTimelineProvider()) { entry in
+            GaugeSmallView(entry: entry)
+        }
+        .configurationDisplayName("Gauge")
+        .description("Today's range as a level gauge, filled to now.")
+        .supportedFamilies([.systemSmall])
+    }
+}
+
+/// systemMedium — "the schedule" (next four turnings; widget canvas #3).
+struct ScheduleWidget: Widget {
+    static let kind = "TidesSchedule"
+
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: Self.kind, provider: GlanceTimelineProvider()) { entry in
+            ScheduleMediumView(entry: entry)
+        }
+        .configurationDisplayName("Schedule")
+        .description("The next four turnings of the tide at St Helier.")
+        .supportedFamilies([.systemMedium])
+    }
+}
+
+/// systemMedium — "the week" (seven days of cycles + morning HW; canvas #4).
+struct WeekWidget: Widget {
+    static let kind = "TidesWeek"
+
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: Self.kind, provider: GlanceTimelineProvider()) { entry in
+            WeekMediumView(entry: entry)
+        }
+        .configurationDisplayName("Week")
+        .description("Seven days of tides and morning high waters.")
+        .supportedFamilies([.systemMedium])
+    }
+}
+
+/// systemLarge — "the fortnight" (springs–neaps bars; widget canvas #5).
+struct FortnightWidget: Widget {
+    static let kind = "TidesFortnight"
+
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: Self.kind, provider: GlanceTimelineProvider()) { entry in
+            FortnightLargeView(entry: entry)
+        }
+        .configurationDisplayName("Fortnight")
+        .description("Fourteen days of high waters — the springs and neaps cycle.")
+        .supportedFamilies([.systemLarge])
     }
 }
 

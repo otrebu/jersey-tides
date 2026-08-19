@@ -84,6 +84,7 @@ struct DebugWidgetGallery: View {
                 }
                 if showsPage(6) { tideWatchRows }
                 if showsPage(7) { siriSnippetRows }
+                if showsPage(8) { instrumentRows }
             }
             .padding(24)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -134,6 +135,29 @@ struct DebugWidgetGallery: View {
         }
         galleryRow("accessoryInline") {
             accessoryTile(InlineAccessoryView(entry: entry), width: 234, height: 26)
+        }
+    }
+
+    /// Page 8 — the five widget-canvas instruments (Clock, Gauge, Schedule,
+    /// Week, Fortnight).
+    @ViewBuilder
+    private var instrumentRows: some View {
+        HStack(alignment: .top, spacing: 24) {
+            galleryRow("systemSmall — Clock") {
+                systemTile(ClockSmallView(entry: entry), width: 170, height: 170)
+            }
+            galleryRow("systemSmall — Gauge") {
+                systemTile(GaugeSmallView(entry: entry), width: 170, height: 170)
+            }
+        }
+        galleryRow("systemMedium — Schedule") {
+            systemTile(ScheduleMediumView(entry: entry), width: 364, height: 170)
+        }
+        galleryRow("systemMedium — Week") {
+            systemTile(WeekMediumView(entry: entry), width: 364, height: 170)
+        }
+        galleryRow("systemLarge — Fortnight") {
+            systemTile(FortnightLargeView(entry: entry), width: 364, height: 382)
         }
     }
 
