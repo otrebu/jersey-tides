@@ -1,0 +1,17 @@
+{
+  "name": "Jersey Tides",
+  "install": "export NVM_DIR=\"$HOME/.nvm\" && . \"$NVM_DIR/nvm.sh\" && nvm use 22 && corepack enable 2>/dev/null; pnpm install --frozen-lockfile && pnpm -r build",
+  "terminals": [
+    {
+      "name": "demo",
+      "command": "export NVM_DIR=\"$HOME/.nvm\" && . \"$NVM_DIR/nvm.sh\" && nvm use 22 && pnpm dev --host",
+      "description": "Vite dev server for apps/demo (the reference consumer site) on http://localhost:5173"
+    }
+  ],
+  "ports": [
+    {
+      "name": "demo",
+      "port": 5173
+    }
+  ]
+}
