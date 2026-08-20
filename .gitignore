@@ -5,6 +5,7 @@ dist/
 .DS_Store
 
 # Swift / Xcode (ios/) — .xcodeproj is XcodeGen-generated, never committed
+.swift-version
 .build/
 .swiftpm/
 xcuserdata/

@@ -30,6 +30,8 @@ if command -v swift >/dev/null 2>&1 || [ -x "$HOME/.local/share/swiftly/bin/swif
   echo "[install] Swift toolchain already present; skipping ios/TidesCore toolchain setup."
 else
   echo "[install] Installing Swift toolchain via swiftly (enables 'swift test' in ios/TidesCore)..."
+  # Run `swiftly init` from $HOME so it does not drop a stray .swift-version in
+  # the checked-out repo; the global default toolchain still applies in /workspace.
   if {
     sudo apt-get update -qq &&
     sudo apt-get install -y -qq gnupg2 libcurl4-openssl-dev libpython3-dev \
@@ -37,7 +39,7 @@ else
     curl -fsSL -o /tmp/swiftly.tar.gz \
       "https://download.swift.org/swiftly/linux/swiftly-$(uname -m).tar.gz" &&
     tar -xzf /tmp/swiftly.tar.gz -C /tmp &&
-    /tmp/swiftly init --assume-yes --quiet-shell-followup
+    ( cd "$HOME" && /tmp/swiftly init --assume-yes --quiet-shell-followup )
   }; then
     echo "[install] Swift toolchain installed."
   else
