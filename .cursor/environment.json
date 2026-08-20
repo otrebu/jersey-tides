@@ -1,6 +1,6 @@
 {
   "name": "Jersey Tides",
-  "install": "export NVM_DIR=\"$HOME/.nvm\" && . \"$NVM_DIR/nvm.sh\" && nvm use 22 && corepack enable 2>/dev/null; pnpm install --frozen-lockfile && pnpm -r build",
+  "install": "bash .cursor/install.sh",
   "terminals": [
     {
       "name": "demo",
