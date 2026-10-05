@@ -199,7 +199,42 @@ struct InlineAccessoryView: View {
 
 // MARK: - Glance dispatcher
 
-/// Dispatcher for the Glance widget (circular + inline share one static config).
+#if os(watchOS)
+/// accessoryCorner — watch face slot only. Level in the corner, next
+/// extreme along the curved label. Not advertised by the iPhone widget.
+struct CornerAccessoryView: View {
+    let entry: TideEntry
+
+    private var units: HeightUnit { entry.config.units }
+
+    var body: some View {
+        Group {
+            if let model = entry.dayModel, let height = model.currentHeight {
+                Text(TideFormatters.heightValue(height, unit: units))
+                    .fontWeight(.medium)
+                    .monospacedDigit()
+                    .widgetLabel {
+                        if let next = model.nextExtreme {
+                            Text(RectTextContent.extremeText(next, units: units))
+                        } else {
+                            Text("St Helier")
+                        }
+                    }
+                    .accessibilityLabel(WidgetVoice.spokenTrend(
+                        height, rising: model.isRising ?? true, unit: units
+                    ))
+            } else {
+                ErrorTileView(family: .accessoryCorner)
+            }
+        }
+        .containerBackground(for: .widget) { AccessoryWidgetBackground() }
+        .widgetURL(entry.dayModel?.day.deepLinkURL)
+    }
+}
+#endif
+
+/// Dispatcher for the Glance widget (circular + inline share one static config;
+/// the watch bundle also lists corner).
 struct GlanceView: View {
     @Environment(\.widgetFamily) private var family
     let entry: TideEntry
@@ -208,6 +243,10 @@ struct GlanceView: View {
         switch family {
         case .accessoryInline:
             InlineAccessoryView(entry: entry)
+        #if os(watchOS)
+        case .accessoryCorner:
+            CornerAccessoryView(entry: entry)
+        #endif
         default:
             CircularAccessoryView(entry: entry)
         }

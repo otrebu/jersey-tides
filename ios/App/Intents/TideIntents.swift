@@ -3,27 +3,48 @@ import Foundation
 import SwiftUI
 
 /// Siri surface (design doc: spoken + glanceable, never stale-feeling).
-/// All three intents run in the app process on the pure engine — offline,
-/// instant — so Siri answers inline (`openAppWhenRun` stays false) with a
-/// dialog plus a token-styled snippet. Phrases live in
-/// `JerseyTidesShortcuts`; every one must embed `\(.applicationName)`.
+/// Compiled into the iPhone app and the watch app. All three intents run in
+/// that app process on the pure engine — offline, instant — so Siri answers
+/// inline (`supportedModes` is `.background`; do not open the app) with a
+/// dialog plus a snippet. Phrases live in `JerseyTidesShortcuts`; every one
+/// must embed `\(.applicationName)`.
 
-/// Snapshot of the app-side settings an intent can honor (units + time
-/// format). Intents run in the app process, so `.standard` is the same
-/// store `SettingsStore` writes — no App Group needed.
+/// Snapshot of the units + time format an intent speaks. On iPhone,
+/// `.standard` is the store `SettingsStore` writes — no App Group. On
+/// watchOS the face has no settings store, so the answer is metres + system.
 struct IntentSettings {
     let units: HeightUnit
     let timeFormat: TimeFormatOption
 
     @MainActor
     static func load(defaults: UserDefaults = .standard) -> IntentSettings {
-        IntentSettings(
+        #if os(watchOS)
+        // The watch face does not read the iPhone settings store. Speak the
+        // same metres + system clock the face already shows.
+        return IntentSettings(units: .metres, timeFormat: .system)
+        #else
+        return IntentSettings(
             units: defaults.string(forKey: SettingsStore.Keys.units)
                 .flatMap(HeightUnit.init(rawValue:)) ?? .metres,
             timeFormat: defaults.string(forKey: SettingsStore.Keys.timeFormat)
                 .flatMap(TimeFormatOption.init(rawValue:)) ?? .system
         )
+        #endif
     }
+}
+
+/// watchOS 26 replacement for leaving `openAppWhenRun` false: Siri speaks
+/// the answer in the background. Foreground would cover the watch face.
+extension NextHighTideIntent {
+    static var supportedModes: IntentModes { .background }
+}
+
+extension NextLowTideIntent {
+    static var supportedModes: IntentModes { .background }
+}
+
+extension CurrentTideIntent {
+    static var supportedModes: IntentModes { .background }
 }
 
 /// Speech-only formatting — the display voice (`TideFormatters.countdown`)

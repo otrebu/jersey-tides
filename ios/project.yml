@@ -2,14 +2,16 @@
 # The generated .xcodeproj is gitignored; never hand-edit the .pbxproj.
 #
 # The TidesCore local SwiftPM package (fixture-parity engine port) is linked
-# into BOTH targets; the app runs on TidesCoreEngine behind the TideEngine
-# facade (Shared/Engine/). Only Shared/Engine/TidesCoreEngine.swift may
-# import TidesCore — all other UI code goes through the facade.
+# into the iOS app, the iOS widget, the watch app, and the watch complication
+# extension. The app runs on TidesCoreEngine behind the TideEngine facade
+# (Shared/Engine/). Only Shared/Engine/TidesCoreEngine.swift may import
+# TidesCore — all other UI code goes through the facade.
 name: JerseyTides
 options:
   bundleIdPrefix: je.ub
   deploymentTarget:
     iOS: "26.0"
+    watchOS: "26.0"
   createIntermediateGroups: true
 packages:
   TidesCore:
@@ -35,6 +37,8 @@ targets:
       - package: TidesCore
       - target: JerseyTidesWidget
         embed: true # embeds the appex
+      - target: JerseyTidesWatch
+        embed: true # Embed Watch Content
     info:
       path: App/Info.plist # XcodeGen generates it
       properties:
@@ -69,6 +73,74 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: je.ub.tides.widget
+  JerseyTidesWatch:
+    type: application
+    platform: watchOS
+    sources:
+      - Watch
+      - path: Shared
+        excludes:
+          # ActivityKit — not on watchOS. iPhone Live Activity only.
+          - Model/TideWatchAttributes.swift
+      - path: App/DeepLink.swift
+      # Siri phrases. The watch app is its own bundle, so it needs its own
+      # AppShortcutsProvider. Do not add this path to the complication target.
+      - path: App/Intents
+    dependencies:
+      - package: TidesCore
+      - target: JerseyTidesWatchWidget
+        embed: true
+    info:
+      path: Watch/Info.plist
+      properties:
+        CFBundleDisplayName: Jersey Tides
+        WKApplication: true
+        WKCompanionAppBundleIdentifier: je.ub.tides
+        # Engine is on-device; the face keeps working with the phone away.
+        WKRunsIndependentlyOfCompanionApp: true
+        CFBundleURLTypes:
+          - CFBundleURLName: je.ub.tides
+            CFBundleURLSchemes: [jerseytides]
+        # Same synonyms as the iPhone app. Wrist Siri resolves
+        # "\(.applicationName)" against this bundle, not the phone's.
+        INAlternativeAppNames:
+          - INAlternativeAppName: Jersey
+          - INAlternativeAppName: Jersey Tide
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: je.ub.tides.watchkitapp
+        "CODE_SIGN_STYLE[sdk=watchos*]": Manual
+        "CODE_SIGN_IDENTITY[sdk=watchos*]": Apple Development
+        "PROVISIONING_PROFILE_SPECIFIER[sdk=watchos*]": Jersey Tides Watch Development
+        INFOPLIST_KEY_WKCompanionAppBundleIdentifier: je.ub.tides
+        INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp: YES
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+  JerseyTidesWatchWidget:
+    type: app-extension
+    platform: watchOS
+    sources:
+      - WatchWidget
+      - path: Shared
+        excludes:
+          - Model/TideWatchAttributes.swift
+      - Widget/Families/AccessoryViews.swift
+      - Widget/ErrorTileView.swift
+      - Widget/TideTimelineProvider.swift
+      - Widget/ConfigIntents.swift
+    dependencies:
+      - package: TidesCore
+    info:
+      path: WatchWidget/Info.plist
+      properties:
+        CFBundleDisplayName: Jersey Tides
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: je.ub.tides.watchkitapp.widget
+        "CODE_SIGN_STYLE[sdk=watchos*]": Manual
+        "CODE_SIGN_IDENTITY[sdk=watchos*]": Apple Development
+        "PROVISIONING_PROFILE_SPECIFIER[sdk=watchos*]": Jersey Tides Watch Complication Development
   JerseyTidesTests:
     type: bundle.unit-test
     platform: iOS
@@ -94,9 +166,33 @@ schemes:
           script: |
             if [ "$PLATFORM_NAME" = "iphonesimulator" ]; then
               codesign -f -s "Apple Development" "$CODESIGNING_FOLDER_PATH/PlugIns/JerseyTidesWidget.appex"
+              # Embedded watch app now carries App Shortcuts too. Inside-out:
+              # complication, watch app, then the phone app.
+              WATCH_APP="$CODESIGNING_FOLDER_PATH/Watch/JerseyTidesWatch.app"
+              if [ -d "$WATCH_APP/PlugIns/JerseyTidesWatchWidget.appex" ]; then
+                codesign -f -s "Apple Development" "$WATCH_APP/PlugIns/JerseyTidesWatchWidget.appex"
+              fi
+              if [ -d "$WATCH_APP" ]; then
+                codesign -f -s "Apple Development" "$WATCH_APP"
+              fi
               codesign -f -s "Apple Development" "$CODESIGNING_FOLDER_PATH"
             fi
     run:
       config: Debug
     test:
       targets: [JerseyTidesTests]
+  JerseyTidesWatch:
+    build:
+      targets: { JerseyTidesWatch: all }
+      # Same linkd rejection as the iPhone scheme: ad-hoc simulator signatures
+      # fail App Shortcuts with "Unable to run App Shortcut".
+      postActions:
+        - name: Re-sign simulator build for App Shortcuts
+          settingsTarget: JerseyTidesWatch
+          script: |
+            if [ "$PLATFORM_NAME" = "watchsimulator" ]; then
+              codesign -f -s "Apple Development" "$CODESIGNING_FOLDER_PATH/PlugIns/JerseyTidesWatchWidget.appex"
+              codesign -f -s "Apple Development" "$CODESIGNING_FOLDER_PATH"
+            fi
+    run:
+      config: Debug

@@ -11,6 +11,7 @@ xcuserdata/
 *.xcodeproj
 ios/.derived/
 ios/.derived-device/
+ios/.derived-watch/
 
 # Claude Design seeded canvas bundles — regenerated from design/*/ *.dc.html sources
 design/*/jersey-tides-widgets.html

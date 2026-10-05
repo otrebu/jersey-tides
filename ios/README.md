@@ -24,6 +24,14 @@ package is not a pnpm workspace member.
   in-process from the engine — no App Group, no network, free-team signable.
   `Widget/Families/` + `Widget/ErrorTileView.swift` are also compiled into the
   app so the DEBUG widget gallery can render every entry view.
+- `Watch/`, `WatchWidget/` — companion watchOS app + complication extension
+  (bundle id `je.ub.tides.watchkitapp` / `.widget`, min watchOS 26.0),
+  embedded in the iPhone app. Same in-process engine; complications reuse the
+  Lock Screen accessory views. Runs without the phone nearby
+  (`WKRunsIndependentlyOfCompanionApp`). Metres + system time only — the
+  iPhone settings store does not sync. `App/Intents/` is compiled into this
+  target so wrist Siri answers offline in those same units. The complication
+  extension must not get an `AppShortcutsProvider` (one per app bundle).
 - `Tests/` — app-hosted unit tests (`JerseyTidesTests`, Swift Testing).
 
 ## Build / test / screenshot loop
@@ -47,6 +55,13 @@ xcodebuild -project ios/JerseyTides.xcodeproj -scheme JerseyTides \
 xcodebuild -project ios/JerseyTides.xcodeproj -scheme JerseyTides \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
   -derivedDataPath ios/.derived test
+
+# Watch app. Requires the watchOS platform component (Xcode ▸ Settings ▸
+# Components). Embedding it in JerseyTides means the iPhone scheme will not
+# build until that component is installed.
+xcodebuild -project ios/JerseyTides.xcodeproj -scheme JerseyTidesWatch \
+  -destination 'generic/platform=watchOS Simulator' \
+  -derivedDataPath ios/.derived-watch build
 
 # Screenshot loop
 xcrun simctl boot "iPhone 17 Pro" 2>/dev/null || true

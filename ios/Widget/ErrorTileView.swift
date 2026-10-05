@@ -23,6 +23,11 @@ struct ErrorTileView: View {
                 .accessibilityLabel("Tides unavailable")
         case .accessoryInline:
             Text("Tides unavailable")
+        #if os(watchOS)
+        case .accessoryCorner:
+            Text("—")
+                .accessibilityLabel("Tides unavailable")
+        #endif
         default:
             // All system families: eyebrow + one Table-voice line on `sky`.
             VStack(alignment: .leading, spacing: 8) {

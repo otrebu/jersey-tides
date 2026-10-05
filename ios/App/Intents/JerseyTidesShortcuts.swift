@@ -8,8 +8,9 @@ import AppIntents
 /// in both numbers and the common orders. `INAlternativeAppNames` in
 /// project.yml adds "Jersey" + "Jersey Tide", so "\(.applicationName)"
 /// resolves from "…in Jersey" / "…in Jersey Tide" as well as the full name.
-/// Exactly one `AppShortcutsProvider` may exist per app — it lives in the app
-/// target only.
+/// Exactly one `AppShortcutsProvider` may exist per app bundle. This type is
+/// compiled into the iPhone app and the watch app — never a widget extension.
+/// `INAlternativeAppNames` is set on both apps in project.yml.
 struct JerseyTidesShortcuts: AppShortcutsProvider {
     static var appShortcuts: [AppShortcut] {
         AppShortcut(

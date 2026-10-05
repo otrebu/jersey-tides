@@ -36,6 +36,13 @@ struct CurveStyle: Equatable, Sendable {
         showsSunTicks: true, showsSunTimes: false,
         showsExtremeLabels: false, showsExtremeMarkers: true
     )
+    /// Watch face — short plot, markers only, no in-plot labels.
+    static let watch = CurveStyle(
+        insets: .init(top: 8, bottom: 6), strokeWidth: 1.5,
+        showsHorizonLine: false, showsHorizonLabel: false,
+        showsSunTicks: false, showsSunTimes: false,
+        showsExtremeLabels: false, showsExtremeMarkers: true
+    )
     /// accessoryRectangular Curve style — 2 pt stroke, markers only.
     static let rect = CurveStyle(
         insets: .init(top: 4, bottom: 2), strokeWidth: 2,
